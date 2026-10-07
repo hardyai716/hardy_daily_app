@@ -13,7 +13,8 @@
 - 产物：index.html 与 life-all-in-one.html **字节相同**（同一页面两路径），改一个必须同步改另一个。
 - 版本史：v6 暖色纸感 / v7 删除弹层+触屏常显 / v8 云端主键 `_id` / v9 习惯 upsert / v10 自绘日期时间面板 / v11 时间面板点击修复 / v12 时间选择改 iPhone 式循环滚轮 / v13 时间面板居中弹出 / v14 滚轮数字列内水平居中（`.dt-col button` 加 width:100%，button 是 shrink-to-fit）/ **v15 字段完整性与同步状态重写（补 40 字段 + 新增习惯定义、个人设置两表 + 习惯定义与打卡分离）/ v16 对齐双路径字节 / v17 修复同步循环卡顿（collectEntities O(n²)→O(n)、旧账目升级改有条件、addRecord 返回值兜底、SYNC_BATCH 限流、continuation 跳过全量 pull）/ v18 修复幽灵冲突（写入回读只比内容不比变更标记；全量拉取时两端一致即清冲突；acknowledgeTask 允许内容相等即完成；无队列项的冲突也可解析）/ v19 导出改标准 CSV（UTF-8 BOM + 引号转义 + CRLF + .csv + text/csv;charset=utf-8；健身零值保留；= + - @ 制表符开头加公式防护）**。
 - 当前线上版本 v19（266517B，md5 `9b4bf2cb5af90d68ee4c3648ee3841b1`，未调用 publish_page.py）。回滚快照 `backup/日常集_v19_2026-10-07.html`。v15 模块在线上文件中的区域：`// v15 repair module.` 起、`const LANG_PARAM` 止——后续改同步逻辑可直接对该区域做字节替换，不必从 v14 基线重建。
-- v19 本地候选位于 `candidate/v19/`：记账和健身导出从 HTML 伪 `.xls` 改为 UTF-8 BOM CSV，健身 `0` 值不再变空，文本公式前缀已防护；下载回归和 14 项同步回归通过，尚未提交云端。
+- v19 已把记账和健身导出从 HTML 伪 `.xls` 改为 UTF-8 BOM CSV，健身 `0` 值不再变空，文本公式前缀已防护；提交后发现 WorkBuddy iframe 的 sandbox 缺少 `allow-downloads`，页内 `<a download>` 被 Chrome 拦截。
+- v20 本地候选位于 `candidate/v20/`：共用 `downloadBlob` 改为在 `allow-popups-to-escape-sandbox` 允许的非沙箱弹窗中触发下载；等价 sandbox 回归证明 v19 被拦、v20 的 CSV 与完整 JSON 备份均能下载。尚未提交云端。
 
 ## 项目形态（重要，回答「后端代码在哪」类问题时用）
 - **没有后端代码**。整个工作台 = 一个 240KB 的单文件 HTML（HTML/CSS/JS 全内联、零外部依赖）
@@ -88,4 +89,14 @@
     手机端最终会拿到最新版；刚提交完查到旧版本只是同步延迟，别据此下结论。
     残留风险：发布出去的只是页面代码 + 8 个表 ID，不含内联个人数据；但匿名访客能否经表 ID 读到数据
     无法用 owner 凭据自测，需用户用未登录/其他账号打开公开链接验收（实施与验收.md 中该条仍待办）。
-19. 用户已在 UI 手动删除三张隔离测试表，并剔除了习惯定义表里的 `test` 自定义习惯（2026-10-07）。
+21. 用户已在 UI 手动删除三张隔离测试表，并剔除了习惯定义表里的 `test` 自定义习惯（2026-10-07）。
+22. **页面内点击验证的套路**（2026-10-07 摸索出来）：私有空间必须登录 → 用 Playwright
+    `launchPersistentContext` + 系统 Chrome（`executablePath`）**有头**跑一次让用户登录，
+    之后同一 profile 可**无头**免登录复跑。脚本 `private_work/verify_v20_clicks2.cjs`。
+    - 有头模式浏览器会在弹窗/下载出现后被整体关闭（三次复现）→ **验证一律用无头**。
+    - agent-browser 的 Chromium 下载经常超时，别依赖它；系统 Chrome 更稳。
+    - 识别工作台 iframe 要按元素（`#saveText`），不要按 URL 匹配。
+    - 点导出前先切到对应视图，否则按钮不可见会 30s 超时。
+    - 用 `downloadsPath` + `download.path()` 取文件，别只信 download 事件。
+    - **差点误判**：探针看到弹窗 `origin === "null"` 就推断「Blob 建在 iframe 里弹窗取不到」，
+      实测证明原实现没问题。源为 null ≠ 取不到 blob URL——拿落盘文件说话，别拿推断下结论。

@@ -6,6 +6,7 @@ const resultPath=process.argv[3]||path.join(__dirname,'browser-results.json');
 const html=fs.readFileSync(target);
 const results={method:'Isolated Chrome, native UI actions, local HTML, external network blocked',target,views:[],checks:[],pageErrors:[]};
 let browser,server;
+function waitForAnyDownload(context,timeout=5000){return new Promise((resolve,reject)=>{let settled=false;const attach=page=>page.on('download',download=>{if(settled)return;settled=true;resolve(download);});context.pages().forEach(attach);context.on('page',attach);setTimeout(()=>{if(settled)return;settled=true;reject(new Error('download did not start'));},timeout);});}
 (async()=>{
   server=http.createServer((req,res)=>{
     if(req.url.startsWith('/app')){res.setHeader('Content-Type','text/html;charset=utf-8');res.end(html);}
@@ -69,7 +70,7 @@ let browser,server;
   assert.equal(await page.locator('#syncRetry').isDisabled(),true);
   await page.waitForFunction(()=>getComputedStyle(document.querySelector('#view-money')).opacity==='1');
   await page.screenshot({path:path.join(__dirname,'browser-mobile.png'),fullPage:true});
-  const downloadPromise=page.waitForEvent('download');await page.locator('#syncExport').click();
+  const downloadPromise=waitForAnyDownload(context);await page.locator('#syncExport').click();
   const download=await downloadPromise;const stream=await download.createReadStream();const chunks=[];for await(const chunk of stream)chunks.push(chunk);
   const backup=JSON.parse(Buffer.concat(chunks));assert.equal(backup.state.records.length,2);assert.ok(Object.keys(backup.state.sync.queue).length>=2);
   results.checks.push({name:'mobile shows local-only state and recovery export includes records and outbox',passed:true});

@@ -1,0 +1,16 @@
+{
+  "method": "Exact v20 candidate in isolated Chrome; external network blocked",
+  "target": "candidate/v20/index.html",
+  "checks": [
+    "money CSV: BOM + standard rows + neutralized formula",
+    "fitness CSV: calories=0 and duration=0 preserved",
+    "full JSON backup: filename, format marker and records present"
+  ],
+  "pageErrors": [],
+  "popups": [
+    "about:blank",
+    "about:blank",
+    "about:blank",
+    "about:blank"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "method": "Local outer page with the exact WorkBuddy iframe sandbox flags",
+  "checks": [
+    "old direct anchor is blocked by the WorkBuddy sandbox",
+    "v20 complete JSON backup downloads through an escaped popup",
+    "v20 money CSV downloads through the same path"
+  ]
+}

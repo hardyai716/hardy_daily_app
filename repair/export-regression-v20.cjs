@@ -1,18 +1,19 @@
-// Native download regression for the v19 CSV candidate. No WorkBuddy network access.
+// v20 download regression: money CSV, fitness CSV and the full JSON backup.
+// Runs the exact deployed candidate in isolated Chrome with external network blocked.
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
 const assert = require('node:assert/strict');
 
-const target = process.argv[2] || path.join(__dirname, '../candidate/v19/index.html');
-const resultPath = process.argv[3] || path.join(__dirname, 'export-results.json');
-const html = fs.readFileSync(target);
+const html = fs.readFileSync(path.join(__dirname, '../candidate/v20/index.html'));
+const resultPath = path.join(__dirname, 'export-v20-results.json');
 const results = {
-  method: 'Exact candidate in isolated Chrome; external network blocked',
-  target,
+  method: 'Exact v20 candidate in isolated Chrome; external network blocked',
+  target: 'candidate/v20/index.html',
   checks: [],
   pageErrors: [],
+  popups: [],
 };
 let server;
 let browser;
@@ -24,21 +25,13 @@ async function readDownload(download) {
   return Buffer.concat(chunks);
 }
 
-function waitForAnyDownload(context, timeout = 5000) {
+function waitForAnyDownload(context, timeout = 15000) {
   return new Promise((resolve, reject) => {
-    let settled = false;
-    const attach = target => target.on('download', download => {
-      if (settled) return;
-      settled = true;
+    const timer = setTimeout(() => reject(new Error('download did not start')), timeout);
+    context.on('download', download => {
+      clearTimeout(timer);
       resolve(download);
     });
-    context.pages().forEach(attach);
-    context.on('page', attach);
-    setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      reject(new Error('download did not start'));
-    }, timeout);
   });
 }
 
@@ -51,28 +44,13 @@ function parseCsv(buffer) {
   for (let i = 0; i < input.length; i++) {
     const char = input[i];
     if (quoted) {
-      if (char === '"' && input[i + 1] === '"') {
-        cell += '"';
-        i++;
-      } else if (char === '"') {
-        quoted = false;
-      } else {
-        cell += char;
-      }
-    } else if (char === '"') {
-      quoted = true;
-    } else if (char === ',') {
-      row.push(cell);
-      cell = '';
-    } else if (char === '\r' && input[i + 1] === '\n') {
-      row.push(cell);
-      rows.push(row);
-      row = [];
-      cell = '';
-      i++;
-    } else {
-      cell += char;
-    }
+      if (char === '"' && input[i + 1] === '"') { cell += '"'; i++; }
+      else if (char === '"') quoted = false;
+      else cell += char;
+    } else if (char === '"') quoted = true;
+    else if (char === ',') { row.push(cell); cell = ''; }
+    else if (char === '\r' && input[i + 1] === '\n') { row.push(cell); rows.push(row); row = []; cell = ''; i++; }
+    else cell += char;
   }
   row.push(cell);
   rows.push(row);
@@ -98,11 +76,13 @@ function parseCsv(buffer) {
   await context.route('**/*', route =>
     route.request().url().startsWith(base) ? route.continue() : route.abort()
   );
+  context.on('page', popup => results.popups.push(popup.url()));
   const page = await context.newPage();
   page.on('pageerror', error => results.pageErrors.push(error.message));
   await page.goto(base, { waitUntil: 'load' });
   await page.locator('#syncSummary').filter({ hasText: '已存本机' }).waitFor();
 
+  // 1. money CSV
   await page.locator('.side-nav [data-nav=money]').click();
   await page.locator('#moneyForm [name=amount]').fill('12.34');
   await page.locator('#moneyForm [name=note]').fill('=2+3');
@@ -117,8 +97,9 @@ function parseCsv(buffer) {
   assert.deepEqual(moneyRows[0], ['日期', '类型', '分类', '金额', '备注']);
   assert.equal(moneyRows[1][3], '12.34');
   assert.equal(moneyRows[1][4], "'=2+3");
-  results.checks.push('money CSV uses UTF-8 BOM, standard rows, and neutralizes formulas');
+  results.checks.push('money CSV: BOM + standard rows + neutralized formula');
 
+  // 2. fitness CSV with zero values
   await page.locator('.side-nav [data-nav=fitness]').click();
   await page.locator('#fitnessForm [name=weight]').fill('70.5');
   await page.locator('#fitnessForm [name=bodyFat]').fill('20.1');
@@ -132,22 +113,30 @@ function parseCsv(buffer) {
   const fitnessBytes = await readDownload(download);
   const fitnessRows = parseCsv(fitnessBytes);
   assert.equal(download.suggestedFilename(), '减脂记录-2026-10-07.csv');
-  assert.deepEqual(fitnessRows[0], [
-    '日期', '体重(kg)', '体脂率(%)', '摄入热量(kcal)', '运动分钟', '备注',
-  ]);
+  assert.deepEqual(fitnessRows[0], ['日期', '体重(kg)', '体脂率(%)', '摄入热量(kcal)', '运动分钟', '备注']);
   assert.equal(fitnessRows[1][3], '0');
   assert.equal(fitnessRows[1][4], '0');
-  results.checks.push('fitness CSV preserves calories=0 and duration=0');
+  results.checks.push('fitness CSV: calories=0 and duration=0 preserved');
+
+  // 3. full JSON backup
+  pending = waitForAnyDownload(context);
+  await page.locator('#syncExport').click();
+  download = await pending;
+  const backupBytes = await readDownload(download);
+  assert.match(download.suggestedFilename(), /^日常集-完整备份-\d{4}-\d{2}-\d{2}\.json$/);
+  const backup = JSON.parse(backupBytes.toString('utf8'));
+  assert.equal(backup.format, 'richangji-recovery-v15');
+  assert.ok(Array.isArray(backup.state.records));
+  assert.ok(backup.state.records.some(r => r.type === 'money'));
+  results.checks.push('full JSON backup: filename, format marker and records present');
 
   assert.equal(await page.getByText('导出 CSV', { exact: true }).count(), 2);
   assert.deepEqual(results.pageErrors, []);
-  fs.writeFileSync(
-    resultPath,
-    JSON.stringify(results, null, 2) + '\n'
-  );
+  fs.writeFileSync(resultPath, JSON.stringify(results, null, 2) + '\n');
   console.log(JSON.stringify(results, null, 2));
 })().catch(error => {
   results.failure = error.message;
+  fs.writeFileSync(resultPath, JSON.stringify(results, null, 2) + '\n');
   console.error(error);
   process.exitCode = 1;
 }).finally(async () => {

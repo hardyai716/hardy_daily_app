@@ -1,0 +1,10 @@
+{
+  "status": "local-candidate-not-deployed",
+  "version": 20,
+  "change": "Start downloads in an unsandboxed popup allowed by the WorkBuddy iframe",
+  "baseline_sha256": "3ff80a8f0ae9faf6ed2f16bbed6f8ff0329b1cce215afb0e0b1f60dafe5f5b95",
+  "candidate_sha256": "986c87b632b56dcdaf88b16f14156fb6da029119129f4016cb643ff5135c1a7a",
+  "bytes": 267443,
+  "two_paths_identical": true,
+  "public_publish_allowed": false
+}
