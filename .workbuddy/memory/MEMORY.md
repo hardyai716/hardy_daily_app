@@ -80,9 +80,12 @@
     写复现脚本时必须用 v1，否则 `loadState` 返回空状态、看起来"一切正常"。
 17. 复现脚本要跑**修复前和修复后两份字节**做对照：`repro_phantom_conflict.cjs <html路径>`。
     只跑修复后看到 PASS 说明不了问题——必须先证明修复前确实复现。
-18. **发布态要用两个脚本交叉核验**：`list_page_publish_artifacts.py` 曾对同一状态返回过
-    `code=56160 not published`，而 `download_page_artifacts.py --source publish` 却能取到产物
-    （`--source publish` 取 `meta.publishVersion` 定格版本，不跟随最新编辑态）。
+18. **发布态要用 `--source publish` 核**（取 `meta.publishVersion` 定格版本）：
+    `list_page_publish_artifacts.py` 曾对同一状态返回过 `code=56160 not published`，结论不可靠。
     2026-10-07 提交 v19 后发现发布态定格在 v18（266396B，不含 v19 改动）。
-    → 结论：commit 不会推进发布态，但发布态可能由他人在 UI 打开；每次交付都要核一遍并告知用户。
+19. **公开入口是用户有意保留的手机访问通道**（2026-10-07 确认）——不要执行 `unpublish_page.py`。
+    代价：发布态是**定格版本，不跟随 commit**，手机端拿到的是旧版本（当前 v18），
+    新改动要上手机必须显式重新发布（需用户明确同意，与「不重新公开发布」的当轮指令冲突时先问）。
+    残留风险：发布出去的只是页面代码 + 8 个表 ID，不含内联个人数据；但匿名访客能否经表 ID 读到数据
+    无法用 owner 凭据自测，需用户用未登录/其他账号打开公开链接验收（实施与验收.md 中该条仍待办）。
 19. 用户已在 UI 手动删除三张隔离测试表，并剔除了习惯定义表里的 `test` 自定义习惯（2026-10-07）。
