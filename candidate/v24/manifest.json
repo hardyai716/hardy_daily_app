@@ -1,0 +1,10 @@
+{
+  "status": "local-candidate-not-deployed",
+  "version": 24,
+  "change": "Add money search, inclusive date range, result counts, and incremental loading",
+  "baseline_sha256": "b3ef09e8aef7f76d14aae19fb6e34d063ac8b1236298d3d5fd7c2e0a565018a2",
+  "candidate_sha256": "d7745db1fabc7696d3fc8be3a0edf70d2b82ddda6ec6eb62649a39c26209d0c9",
+  "bytes": 302046,
+  "two_paths_identical": true,
+  "public_publish_allowed": false
+}

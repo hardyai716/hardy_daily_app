@@ -1,0 +1,10 @@
+{
+  "status": "local-candidate-not-deployed",
+  "version": 25,
+  "change": "Refresh across local-day rollover and scope weekly-plan completion by ISO week",
+  "baseline_sha256": "d7745db1fabc7696d3fc8be3a0edf70d2b82ddda6ec6eb62649a39c26209d0c9",
+  "candidate_sha256": "74078d8ec6412d54b70eb5016c0ff16f9cc327f3106fe42ef94dd03ce49d838b",
+  "bytes": 306592,
+  "two_paths_identical": true,
+  "public_publish_allowed": false
+}

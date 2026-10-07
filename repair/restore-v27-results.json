@@ -1,0 +1,37 @@
+{
+  "method": "Exact candidate in isolated Chrome; native file chooser and download events",
+  "target": "candidate/v27/index.html",
+  "checks": [
+    "v22 backup contains version metadata and record counts",
+    "merge restore keeps current-only records",
+    "replace restore downloads a rollback copy and queues current-only deletion",
+    "invalid backup is rejected without mutating local state"
+  ],
+  "pageErrors": [],
+  "errorStages": [
+    {
+      "label": "initial",
+      "errors": []
+    },
+    {
+      "label": "after-add",
+      "errors": []
+    },
+    {
+      "label": "export",
+      "errors": []
+    },
+    {
+      "label": "merge",
+      "errors": []
+    },
+    {
+      "label": "replace",
+      "errors": []
+    },
+    {
+      "label": "invalid",
+      "errors": []
+    }
+  ]
+}

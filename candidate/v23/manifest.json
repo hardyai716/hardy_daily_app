@@ -1,0 +1,10 @@
+{
+  "status": "local-candidate-not-deployed",
+  "version": 23,
+  "change": "Add in-place editing for money, planner, fitness, shopping, and media records",
+  "baseline_sha256": "dd9a81dc2dfee3a4b5ac42b9396c738418af596e37e87f66ce8fef776b68052b",
+  "candidate_sha256": "b3ef09e8aef7f76d14aae19fb6e34d063ac8b1236298d3d5fd7c2e0a565018a2",
+  "bytes": 295256,
+  "two_paths_identical": true,
+  "public_publish_allowed": false
+}

@@ -69,6 +69,12 @@ function waitForAnyDownload(context,timeout=5000){return new Promise((resolve,re
   assert.ok((await page.locator('#syncSummary').textContent()).includes('未连接云端'));
   assert.equal(await page.locator('#syncRetry').isDisabled(),true);
   await page.waitForFunction(()=>getComputedStyle(document.querySelector('#view-money')).opacity==='1');
+  assert.equal(await page.locator('#mobileBrandSettingsBtn').isVisible(),true);
+  await page.locator('#mobileBrandSettingsBtn').click();
+  assert.equal(await page.locator('#brandSettings').isVisible(),true);
+  await page.locator('#brandSettings [data-action=close-brand]').click();
+  assert.equal(await page.locator('#brandSettings').isHidden(),true);
+  results.checks.push({name:'mobile appearance settings entry opens and closes the existing settings sheet',passed:true});
   await page.screenshot({path:path.join(__dirname,'browser-mobile.png'),fullPage:true});
   const downloadPromise=waitForAnyDownload(context);await page.locator('#syncExport').click();
   const download=await downloadPromise;const stream=await download.createReadStream();const chunks=[];for await(const chunk of stream)chunks.push(chunk);

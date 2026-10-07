@@ -11,17 +11,20 @@
 - 编辑态：https://www.workbuddy.cn/space/d/FxXXoCbSbuuHuowGoydwLH
 - 历史公开态：https://workbuddy.link/p/FxXXoCbSbuuHuowGoydwLH（新要求下需取消发布，不再作为手机入口）
 - 产物：index.html 与 life-all-in-one.html **字节相同**（同一页面两路径），改一个必须同步改另一个。
-- 版本史：v6 暖色纸感 / v7 删除弹层+触屏常显 / v8 云端主键 `_id` / v9 习惯 upsert / v10 自绘日期时间面板 / v11 时间面板点击修复 / v12 时间选择改 iPhone 式循环滚轮 / v13 时间面板居中弹出 / v14 滚轮数字列内水平居中（`.dt-col button` 加 width:100%，button 是 shrink-to-fit）/ **v15 字段完整性与同步状态重写（补 40 字段 + 新增习惯定义、个人设置两表 + 习惯定义与打卡分离）/ v16 对齐双路径字节 / v17 修复同步循环卡顿（collectEntities O(n²)→O(n)、旧账目升级改有条件、addRecord 返回值兜底、SYNC_BATCH 限流、continuation 跳过全量 pull）/ v18 修复幽灵冲突（写入回读只比内容不比变更标记；全量拉取时两端一致即清冲突；acknowledgeTask 允许内容相等即完成；无队列项的冲突也可解析）/ v19 导出改标准 CSV（UTF-8 BOM + 引号转义 + CRLF + .csv + text/csv;charset=utf-8；健身零值保留；= + - @ 制表符开头加公式防护） / v20 修复托管页面导出按钮无响应（沙箱内改弹窗路径触发下载） / v21 修复热力图标题行两端贴边裁切 + 辅助文字字号与对比度**。
-- 当前线上版本 v21（267643B，sha256 `9d361338e79758c6ce34729eff69c291b7d035e75417ab54f406e287d5cecc8a`，md5 `f6acd24ed628500a34a175ce7a3c77d3`，未调用 publish_page.py）。回滚快照 `backup/日常集_v21_2026-10-07.html`。v15 模块在线上文件中的区域：`// v15 repair module.` 起、`const LANG_PARAM` 止——后续改同步逻辑可直接对该区域做字节替换，不必从 v14 基线重建。
+- 版本史：v6 暖色纸感 / v7 删除弹层+触屏常显 / v8 云端主键 `_id` / v9 习惯 upsert / v10 自绘日期时间面板 / v11 时间面板点击修复 / v12 时间选择改 iPhone 式循环滚轮 / v13 时间面板居中弹出 / v14 滚轮数字列内水平居中 / v15 字段完整性与同步状态重写 / v16 对齐双路径 / v17 修复同步循环卡顿 / v18 修复幽灵冲突 / v19 标准 CSV / v20 沙箱下载 / v21 热力图标题 / **v22 完整备份恢复+空值清理 / v23 五类记录编辑 / v24 账目搜索日期分页 / v25 跨日+ISO 周计划 / v26 定向同步读取+存储保护 / v27 手机外观设置入口**。
+- 当前线上**编辑态版本 23**（= 本地候选 v27 的内容，311348B，sha256 `8294040e685f2e6ac0a7565c62cf1e55c93f8cb70175ae5fd8264375e239a0ec`，md5 `c754af3b22b22e3832ef51090bdff3fb`，未调用 `publish_page.py`）。回滚快照 `backup/日常集_v27_2026-10-07.html`（上一版快照 `backup/日常集_v21_2026-10-07.html` 仍保留）。v15 模块在线上文件中的区域：`// v15 repair module.` 起、`const LANG_PARAM` 止。
+- **本地候选版本号 ≠ 云端版本号**：本地按 feature 累积编号（v21→v27 六个候选），云端每次 commit 只 +1。故本地 v27 提交后云端是 **22 →（对齐一次）→ 23**。以后汇报要同时给出「本地候选号」和「云端版本号」。
+- v27 已部署（云端编辑态 23，两个事务 `tx_DavaWAX2xFd0EhdmLgv9mY`(base 21→v22) + `tx_atBZKgiYSvsSKeVcFos9ub`(base 22→v23)，提交信息「完善备份恢复、记录编辑、账目检索及跨日同步」/「对齐两个页面路径的字节」）：v22–v27 累积功能（完整备份恢复、五类记录原位编辑、账目搜索/日期范围/加载更多、跨日刷新、ISO 周计划、定向同步读取、封面容量保护、手机外观入口）。候选上传字节 310485B/sha256 `4c3be941…`；平台为新 DOM 注入 pnid 后两路径各成一套 ID（回读 311348B），按老办法用回读的 index.html 覆盖 life-all-in-one.html 再提交一次即对齐。验收：两路径字节一致、8 表关系 8/8、页面+空间协作者仅本人 owner、真实页面加载「记录已同步」0 error、本地字节 16 视图/8 绑定/4 功能标记 0 error。
+- **公开发布产物是独立的一套**：本次提交后 `--source publish` 回读仍是 v21（9d361338…，267643B），即编辑态提交不会同步推进公开产物（至少在本次采样时刻未跟进）。本次全程未执行 publish/unpublish。
 - v20 已部署（云端版本 20，267443B，md5 `19c90688a229f4ea7a7d23d7beb271e1`）：共用 `downloadBlob` 改为在 `allow-popups-to-escape-sandbox` 允许的非沙箱弹窗中触发下载；等价 sandbox 回归 + 真实托管页面点击验收均通过（记账 CSV / 健身 CSV / 完整 JSON 备份三项正常）。
 - v21 已部署（云端版本 21，提交 `tx_6JCsjaCyAdEL7CSxrwoX3Q`，baseVersion 20，提交信息「修复下载按钮和热力图标题显示」，未公开发布）：在 v20 下载修复之上，为习惯页热力图标题行（`.heatmap-panel .panel-head`）增加 `padding-inline:6px`，两处辅助文字（`.eyebrow` / `.mini-note`）由 10px 浅灰改为 11px `#6f655b`，`.mini-note` 加 `flex:0 0 auto;white-space:nowrap`。真实托管页面验收：下载三项正常、标题 1440/390 左右端内缩 7px 无裁切、0 page error。两路径提交后仍字节一致（无 DOM 新增，无 pnid 漂移）。
 - 上一版本 v19 的说明：v19 已把记账和健身导出从 HTML 伪 `.xls` 改为 UTF-8 BOM CSV，健身 `0` 值不再变空，文本公式前缀已防护；提交后发现 WorkBuddy iframe 的 sandbox 缺少 `allow-downloads`，页内 `<a download>` 被 Chrome 拦截（正是 v20 修的）。
 
 ## 项目形态（重要，回答「后端代码在哪」类问题时用）
-- **没有后端代码**。整个工作台 = 一个 240KB 的单文件 HTML（HTML/CSS/JS 全内联、零外部依赖）
-  + 平台内置的 `window.__SMART_PAGE__.database` 读写通道 + 6 张纯数据表。
+- **没有后端代码**。整个工作台 = 一个约 310KB 的单文件 HTML（HTML/CSS/JS 全内联、零外部依赖）
+  + 平台内置的 `window.__SMART_PAGE__.database` 读写通道 + 8 张纯数据表。
   页内 grep `require(`/`def`/`express`/`@app.route`/`<?php`/`func main`/`CREATE TABLE` 均为 0。
-- **云端正本是唯一正本**，本地从不长期存放 index.html；每次改版都是临时下载→改→上传→提交，临时目录随手清理。
+- **云端正本是唯一正本**；本地 `backup/` 和 `candidate/` 只保存回滚快照及待提交候选。
 - **8 张数据表**（v15 起；页面里常量名 → databaseId）：
   `DB_MONEY`=wMPUiJRjq1FFJjDkaRDauJ（记账） / `DB_FITNESS`=yUBsXsNzZ2vj7CuewMBpdQ（健身） /
   `DB_MEDIA`=B66hZomeHQTqJEWsIYxmCH（书影音） / `DB_HABIT`=6pJ5uqS3eeLVVnDfTh39qB（习惯打卡） /
@@ -32,7 +35,7 @@
 - **跨平台接手**：把节点 ID 给对方 + 要求「用资料库能力下载现有页面、在它基础上改、提交私人资料库版本，不公开发布」。
   动手前必须验收下载到的 HTML 里有 `window.__SMART_PAGE__.database` 和 8 个 `DB_*` 常量；
   找不到就是拿错文件/要走重写 → 停，重写会丢表绑定（账单读不出来）。
-- **本地快照保险**：`backup/`（当前含 v14～v18 双路径副本 + README 说明清单；优先使用最新 v18）。
+- **本地快照保险**：`backup/` 当前最新线上快照为 v21；待提交功能在 `candidate/v27/`。
   资料库**不支持版本回滚**，较大改动前先新增一份带日期的快照。
 - 临时工件目录（tmp_*/verify_*）用完即清；`memory/` 必须保留。
 
@@ -84,12 +87,10 @@
     只跑修复后看到 PASS 说明不了问题——必须先证明修复前确实复现。
 18. **发布态要用 `--source publish` 核**（它取 `meta.publishVersion`，`list_page_publish_artifacts.py`
     曾对同一状态返回 `code=56160 not published`，结论不可靠，别用它下判断）。
-19. **公开入口是用户有意保留的手机访问通道**（2026-10-07 确认）——不要执行 `unpublish_page.py`。
-20. **发布态会在 commit 后异步跟进最新版**（2026-10-07 实测）：提交 v19 后立刻查仍是 v18，
-    约 10 分钟后再查已是 v19（266517B、含「导出 CSV」）。所以**不需要显式重新发布**，
-    手机端最终会拿到最新版；刚提交完查到旧版本只是同步延迟，别据此下结论。
-    残留风险：发布出去的只是页面代码 + 8 个表 ID，不含内联个人数据；但匿名访客能否经表 ID 读到数据
-    无法用 owner 凭据自测，需用户用未登录/其他账号打开公开链接验收（实施与验收.md 中该条仍待办）。
+19. **最新权限决定：只允许本人登录，公开发布已取消。** 后续只提交私人资料库事务，不得调用
+    `publish_page.py` 或恢复历史公开入口；手机也使用本人登录后的私人入口。
+20. 提交私人页面后必须回读两个路径和 8 张表绑定；新增 DOM 可能被平台注入不同 pnid，必要时用回读
+    `index.html` 覆盖另一条路径再提交一次。未登录/其他账号仍需做真实权限验收。
 21. 用户已在 UI 手动删除三张隔离测试表，并剔除了习惯定义表里的 `test` 自定义习惯（2026-10-07）。
 22. **页面内点击验证的套路**（2026-10-07 摸索出来）：私有空间必须登录 → 用 Playwright
     `launchPersistentContext` + 系统 Chrome（`executablePath`）**有头**跑一次让用户登录，
@@ -101,3 +102,6 @@
     - 用 `downloadsPath` + `download.path()` 取文件，别只信 download 事件。
     - **差点误判**：探针看到弹窗 `origin === "null"` 就推断「Blob 建在 iframe 里弹窗取不到」，
       实测证明原实现没问题。源为 null ≠ 取不到 blob URL——拿落盘文件说话，别拿推断下结论。
+23. v22-v27 的关键边界：备份格式仍为 `richangji-recovery-v22`、schemaVersion 3，`appVersion` 为 27；
+    提醒只保存意愿，不承诺网页关闭后推送；SDK 无条件更新/原子唯一约束，不能承诺同记录跨设备严格串行；
+    删除保留云端软删除标记，不在缺少安全保留期和条件删除能力时自动物理清理。

@@ -1,0 +1,141 @@
+{
+  "method": "Isolated Chrome, native UI actions, local HTML, external network blocked",
+  "target": "candidate/v27/index.html",
+  "views": [
+    {
+      "width": 1440,
+      "key": "dashboard",
+      "view": "view-dashboard",
+      "viewport": 1440,
+      "scroll": 1440
+    },
+    {
+      "width": 1440,
+      "key": "money",
+      "view": "view-money",
+      "viewport": 1440,
+      "scroll": 1440
+    },
+    {
+      "width": 1440,
+      "key": "habits",
+      "view": "view-habits",
+      "viewport": 1440,
+      "scroll": 1440
+    },
+    {
+      "width": 1440,
+      "key": "fitness",
+      "view": "view-fitness",
+      "viewport": 1440,
+      "scroll": 1440
+    },
+    {
+      "width": 1440,
+      "key": "planner",
+      "view": "view-planner",
+      "viewport": 1440,
+      "scroll": 1440
+    },
+    {
+      "width": 1440,
+      "key": "home",
+      "view": "view-home",
+      "viewport": 1440,
+      "scroll": 1440
+    },
+    {
+      "width": 1440,
+      "key": "media",
+      "view": "view-media",
+      "viewport": 1440,
+      "scroll": 1440
+    },
+    {
+      "width": 1440,
+      "key": "archive",
+      "view": "view-archive",
+      "viewport": 1440,
+      "scroll": 1440
+    },
+    {
+      "width": 390,
+      "key": "dashboard",
+      "view": "view-dashboard",
+      "viewport": 390,
+      "scroll": 390
+    },
+    {
+      "width": 390,
+      "key": "money",
+      "view": "view-money",
+      "viewport": 390,
+      "scroll": 390
+    },
+    {
+      "width": 390,
+      "key": "habits",
+      "view": "view-habits",
+      "viewport": 390,
+      "scroll": 390
+    },
+    {
+      "width": 390,
+      "key": "fitness",
+      "view": "view-fitness",
+      "viewport": 390,
+      "scroll": 390
+    },
+    {
+      "width": 390,
+      "key": "planner",
+      "view": "view-planner",
+      "viewport": 390,
+      "scroll": 390
+    },
+    {
+      "width": 390,
+      "key": "home",
+      "view": "view-home",
+      "viewport": 390,
+      "scroll": 390
+    },
+    {
+      "width": 390,
+      "key": "media",
+      "view": "view-media",
+      "viewport": 390,
+      "scroll": 390
+    },
+    {
+      "width": 390,
+      "key": "archive",
+      "view": "view-archive",
+      "viewport": 390,
+      "scroll": 390
+    }
+  ],
+  "checks": [
+    {
+      "name": "date reset matches displayed date while stored record keeps selected date",
+      "passed": true
+    },
+    {
+      "name": "second editor blocked by browser Web Lock",
+      "passed": true
+    },
+    {
+      "name": "time wheel submit clears visible label and retains selected record time",
+      "passed": true
+    },
+    {
+      "name": "mobile appearance settings entry opens and closes the existing settings sheet",
+      "passed": true
+    },
+    {
+      "name": "mobile shows local-only state and recovery export includes records and outbox",
+      "passed": true
+    }
+  ],
+  "pageErrors": []
+}

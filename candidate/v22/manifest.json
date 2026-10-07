@@ -1,0 +1,10 @@
+{
+  "status": "local-candidate-not-deployed",
+  "version": 22,
+  "change": "Add validated backup restore and explicit clearing of stale cloud columns",
+  "baseline_sha256": "9d361338e79758c6ce34729eff69c291b7d035e75417ab54f406e287d5cecc8a",
+  "candidate_sha256": "dd9a81dc2dfee3a4b5ac42b9396c738418af596e37e87f66ce8fef776b68052b",
+  "bytes": 282997,
+  "two_paths_identical": true,
+  "public_publish_allowed": false
+}

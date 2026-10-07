@@ -1,0 +1,10 @@
+{
+  "status": "local-candidate-not-deployed",
+  "version": 26,
+  "change": "Use targeted sync reads between periodic full pulls and enforce cover/storage safeguards",
+  "baseline_sha256": "74078d8ec6412d54b70eb5016c0ff16f9cc327f3106fe42ef94dd03ce49d838b",
+  "candidate_sha256": "6717b2cf0eee8821b1eaba100be36c7259153bc2254c7ad0cab92b38806f8e01",
+  "bytes": 309673,
+  "two_paths_identical": true,
+  "public_publish_allowed": false
+}

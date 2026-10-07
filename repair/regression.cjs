@@ -1,6 +1,7 @@
 // Whole-page JavaScript + synthetic SDK integration regression. Never connects to WorkBuddy.
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),crypto=require('node:crypto'),path=require('node:path');
 const html=fs.readFileSync(process.argv[2]||path.join(__dirname,'../candidate/v15/index.html'),'utf8');
+const resultPath=process.argv[3]||path.join(__dirname,'regression-results.json');
 const scripts=[...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
 const source=scripts.find(s=>s.includes('Database SDK Integration')).replace(/\r+\n/g,'\n');
 const clone=v=>JSON.parse(JSON.stringify(v));
@@ -61,6 +62,9 @@ function env({cloud=fakeCloud(),storage={},sdk=true,bind=true,quota=false}={}){
       get runtime(){return syncRuntime},get corrupted(){return dataCorrupted},
       prepareSync,saveState,runSync,collectEntities,mergeThree,propertiesFor,decode,
       SYNC_TABLES,COMMON_FIELDS,EXTRA_FIELDS,legacyValue,normalizeState,
+      normalizeWeeklyPlan:typeof normalizeWeeklyPlan==='function'?normalizeWeeklyPlan:(items=>items),
+      coverStorageError:typeof coverStorageError==='function'?coverStorageError:(()=>''),
+      storageSummary:typeof storageSummary==='function'?storageSummary:(()=>''),
       removeHabitCustom,restoreHabit,pushHabit,resolveSyncConflict,
       autoConfirm(){askConfirm=()=>Promise.resolve(true)}
     };`;
@@ -84,6 +88,7 @@ function env({cloud=fakeCloud(),storage={},sdk=true,bind=true,quota=false}={}){
     cloud.schemas[id]=Object.entries({...old,...api.COMMON_FIELDS,...api.EXTRA_FIELDS[kind]}).map(([name,type])=>({name,type}));
     cloud.tables[id]||=[];
   }
+  api.state.settings.weeklyPlan=api.normalizeWeeklyPlan(api.state.settings.weeklyPlan);
   api.prepareSync();
   return {api,cloud,storage,node};
 }
@@ -91,7 +96,7 @@ function record(id,type,data){return {id,type,date:'2026-10-06',createdAt:1,samp
 async function test(name,fn){await fn();results.push({name,passed:true});console.log('PASS '+name);}
 function pending(e){return Object.keys(e.api.state.sync.queue);}
 function writes(e){return e.cloud.calls.filter(c=>['add','update'].includes(c.method));}
-async function seed(e){await e.api.runSync();assert.equal(e.api.runtime.error,'');assert.deepEqual(pending(e),[]);}
+async function seed(e){e.api.runtime.forcePull=true;await e.api.runSync();assert.equal(e.api.runtime.error,'');assert.deepEqual(pending(e),[]);}
 async function main(){
   for(const script of scripts)new vm.Script(script);
   await test('normal field round trip, including nulls, units, date, dropped media and settings',async()=>{
@@ -113,6 +118,16 @@ async function main(){
     const restarted=env({cloud:e.cloud,storage:clone(e.storage)});await seed(restarted);
     assert.equal(restarted.api.state.records.find(r=>r.id==='fitness-1').data.bodyFat,null);
   });
+  await test('updates explicitly clear stale optional cloud columns while new records omit nulls',async()=>{
+    const e=env();await seed(e);
+    const value={id:'fitness-null',type:'fitness',date:'2026-10-06',createdAt:1,data:{weight:70,bodyFat:null,calories:null,duration:0,note:''}};
+    const update=e.api.propertiesFor({kind:'fitness',id:value.id,value,opId:'op-update',base:{remoteId:'remote-fitness',value}});
+    assert.deepEqual(clone(update['体脂率']),{number:null});
+    assert.deepEqual(clone(update['摄入热量']),{number:null});
+    assert.deepEqual(clone(update['运动分钟']),{number:0});
+    const add=e.api.propertiesFor({kind:'fitness',id:value.id,value,opId:'op-add',base:null});
+    assert.equal('体脂率' in add,false);assert.equal('摄入热量' in add,false);
+  });
   await test('offline create, reload and retry preserve local records and accurate status',async()=>{
     const e=env();await seed(e);e.cloud.failQuery=true;
     e.api.state.records.push(record('offline-1','money',{flow:'expense',amount:12,category:'吃饭',note:'离线'}));e.api.saveState();
@@ -127,10 +142,36 @@ async function main(){
     const schema=env();schema.cloud.schemas[schema.api.SYNC_TABLES.money]=[];
     await schema.api.runSync();assert.ok(schema.api.runtime.error.includes('字段'));assert.equal(writes(schema).length,0);
   });
+  await test('recent local writes query only the changed entity; forced refresh still pulls all tables',async()=>{
+    const e=env();await seed(e);e.cloud.calls.length=0;
+    assert.match(e.api.coverStorageError('x'.repeat(260001)),/过大/);
+    assert.match(e.api.storageSummary(),/本机数据约/);
+    e.api.state.records.push(record('targeted-1','money',{flow:'expense',amount:9,category:'其他',note:'定向读取'}));
+    e.api.saveState();await e.api.runSync();
+    const targeted=e.cloud.calls.filter(call=>call.method==='query');
+    assert.equal(targeted.length,1);assert.equal(targeted[0].databaseId,e.api.SYNC_TABLES.money);
+    assert.equal(targeted[0].filter.property.text.equals,'targeted-1');
+    e.cloud.calls.length=0;e.api.runtime.forcePull=true;await e.api.runSync();
+    const full=e.cloud.calls.filter(call=>call.method==='query'&&!call.filter);
+    assert.equal(full.length,Object.keys(e.api.SYNC_TABLES).length);
+  });
+  await test('legacy weekly completion is migrated to a week-keyed cloud setting',async()=>{
+    const e=env();await seed(e);
+    const table=e.cloud.tables[e.api.SYNC_TABLES.settings];
+    const row=table.find(item=>item['稳定ID']==='weeklyPlan');
+    const legacy={id:'weekly-legacy',group:'运动',title:'旧计划',note:'',done:true};
+    row['完整数据']=JSON.stringify({id:'weeklyPlan',value:[legacy]});
+    row['设置内容']=JSON.stringify([legacy]);row['变更ID']='legacy-week';
+    const second=env({cloud:e.cloud});await seed(second);
+    const saved=JSON.parse(row['完整数据']).value[0];
+    assert.equal('done' in saved,false);
+    assert.equal(Object.values(saved.doneByWeek).filter(Boolean).length,1);
+  });
   await test('late initial query cannot overwrite an edit created during the read',async()=>{
     const e=env();await seed(e);
     let resume,started;const wait=new Promise(r=>started=r);
     e.cloud.pauseQuery=()=>{started();return new Promise(r=>resume=r);};
+    e.api.runtime.forcePull=true;
     const run=e.api.runSync();await wait;
     e.api.state.records.push(record('late-1','money',{flow:'expense',amount:9,category:'其他',note:'读取中新增'}));e.api.saveState();resume();await run;
     assert.equal(e.api.state.records.length,1);assert.equal(e.api.runtime.error,'');assert.equal(pending(e).length,0);
@@ -214,12 +255,12 @@ async function main(){
   await test('duplicate stable IDs block writes instead of silently choosing a record',async()=>{
     const e=env();await seed(e);
     const table=e.cloud.tables[e.api.SYNC_TABLES.habit];table.push({...clone(table[0]),_id:'duplicate'});
-    const before=writes(e).length;await e.api.runSync();assert.ok(e.api.runtime.error.includes('重复'));assert.equal(writes(e).length,before);
+    const before=writes(e).length;e.api.runtime.forcePull=true;await e.api.runSync();assert.ok(e.api.runtime.error.includes('重复'));assert.equal(writes(e).length,before);
   });
   await test('malformed complete payload blocks the entire read before replacing local state',async()=>{
     const e=env();await seed(e);
     e.cloud.tables[e.api.SYNC_TABLES.money].push({_id:'malformed','稳定ID':'bad','变更ID':'v1','完整数据':'{"id":"bad"}','已删除':false});
-    const before=writes(e).length;await e.api.runSync();
+    const before=writes(e).length;e.api.runtime.forcePull=true;await e.api.runSync();
     assert.ok(e.api.runtime.error.includes('格式不完整'));assert.equal(e.api.state.records.length,0);assert.equal(writes(e).length,before);
   });
   await test('legacy pendingAdd is removed and failed check-in can sync after reload',async()=>{
@@ -230,6 +271,6 @@ async function main(){
     assert.equal(reloaded.api.state.habits[0].entries['2026-10-06'],2);
     assert.equal(e.cloud.tables[e.api.SYNC_TABLES.checkin].length,1);
   });
-  fs.writeFileSync(path.join(__dirname,'regression-results.json'),JSON.stringify({method:'Full page JS in isolated VM; synthetic SDK only; no production requests',passed:results.length,results},null,2)+'\n');
+  fs.writeFileSync(resultPath,JSON.stringify({method:'Full page JS in isolated VM; synthetic SDK only; no production requests',passed:results.length,results},null,2)+'\n');
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});

@@ -1,0 +1,10 @@
+{
+  "status": "local-candidate-not-deployed",
+  "version": 27,
+  "change": "Expose appearance settings on mobile and finalize backup metadata",
+  "baseline_sha256": "6717b2cf0eee8821b1eaba100be36c7259153bc2254c7ad0cab92b38806f8e01",
+  "candidate_sha256": "4c3be941cd57bb4e371626a132cd5a2f4af1d8ee9595342baa09283d886bb2d5",
+  "bytes": 310485,
+  "two_paths_identical": true,
+  "public_publish_allowed": false
+}

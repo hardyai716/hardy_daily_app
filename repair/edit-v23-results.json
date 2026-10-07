@@ -1,0 +1,12 @@
+{
+  "target": "candidate/v23/index.html",
+  "checks": [
+    "cancel restores the pre-edit new-record draft without changing the record",
+    "money edit updates the original stable ID instead of adding a record",
+    "planner edit preserves completion while allowing time clearing",
+    "fitness edit preserves numeric zero and clears optional numbers to null",
+    "shopping edit preserves purchased state and clears optional values",
+    "media edit updates the original item and supports cover removal"
+  ],
+  "pageErrors": []
+}
