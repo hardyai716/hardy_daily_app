@@ -11,8 +11,9 @@
 - 编辑态：https://www.workbuddy.cn/space/d/FxXXoCbSbuuHuowGoydwLH
 - 历史公开态：https://workbuddy.link/p/FxXXoCbSbuuHuowGoydwLH（新要求下需取消发布，不再作为手机入口）
 - 产物：index.html 与 life-all-in-one.html **字节相同**（同一页面两路径），改一个必须同步改另一个。
-- 版本史：v6 暖色纸感 / v7 删除弹层+触屏常显 / v8 云端主键 `_id` / v9 习惯 upsert / v10 自绘日期时间面板 / v11 时间面板点击修复 / v12 时间选择改 iPhone 式循环滚轮 / v13 时间面板居中弹出 / v14 滚轮数字列内水平居中（`.dt-col button` 加 width:100%，button 是 shrink-to-fit）/ **v15 字段完整性与同步状态重写（补 40 字段 + 新增习惯定义、个人设置两表 + 习惯定义与打卡分离）/ v16 对齐双路径字节 / v17 修复同步循环卡顿（collectEntities O(n²)→O(n)、旧账目升级改有条件、addRecord 返回值兜底、SYNC_BATCH 限流、continuation 跳过全量 pull）/ v18 修复幽灵冲突（写入回读只比内容不比变更标记；全量拉取时两端一致即清冲突；acknowledgeTask 允许内容相等即完成；无队列项的冲突也可解析）**。
-- 当前线上版本 v18（266396B，md5 `019a89244f51bf268debcd93c3c40b7c`，未公开发布）。回滚快照 `backup/日常集_v18_2026-10-07.html`。v15 模块在线上文件中的区域：`// v15 repair module.` 起、`const LANG_PARAM` 止——后续改同步逻辑可直接对该区域做字节替换，不必从 v14 基线重建。
+- 版本史：v6 暖色纸感 / v7 删除弹层+触屏常显 / v8 云端主键 `_id` / v9 习惯 upsert / v10 自绘日期时间面板 / v11 时间面板点击修复 / v12 时间选择改 iPhone 式循环滚轮 / v13 时间面板居中弹出 / v14 滚轮数字列内水平居中（`.dt-col button` 加 width:100%，button 是 shrink-to-fit）/ **v15 字段完整性与同步状态重写（补 40 字段 + 新增习惯定义、个人设置两表 + 习惯定义与打卡分离）/ v16 对齐双路径字节 / v17 修复同步循环卡顿（collectEntities O(n²)→O(n)、旧账目升级改有条件、addRecord 返回值兜底、SYNC_BATCH 限流、continuation 跳过全量 pull）/ v18 修复幽灵冲突（写入回读只比内容不比变更标记；全量拉取时两端一致即清冲突；acknowledgeTask 允许内容相等即完成；无队列项的冲突也可解析）/ v19 导出改标准 CSV（UTF-8 BOM + 引号转义 + CRLF + .csv + text/csv;charset=utf-8；健身零值保留；= + - @ 制表符开头加公式防护）**。
+- 当前线上版本 v19（266517B，md5 `9b4bf2cb5af90d68ee4c3648ee3841b1`，未调用 publish_page.py）。回滚快照 `backup/日常集_v19_2026-10-07.html`。v15 模块在线上文件中的区域：`// v15 repair module.` 起、`const LANG_PARAM` 止——后续改同步逻辑可直接对该区域做字节替换，不必从 v14 基线重建。
+- v19 本地候选位于 `candidate/v19/`：记账和健身导出从 HTML 伪 `.xls` 改为 UTF-8 BOM CSV，健身 `0` 值不再变空，文本公式前缀已防护；下载回归和 14 项同步回归通过，尚未提交云端。
 
 ## 项目形态（重要，回答「后端代码在哪」类问题时用）
 - **没有后端代码**。整个工作台 = 一个 240KB 的单文件 HTML（HTML/CSS/JS 全内联、零外部依赖）
@@ -79,3 +80,9 @@
     写复现脚本时必须用 v1，否则 `loadState` 返回空状态、看起来"一切正常"。
 17. 复现脚本要跑**修复前和修复后两份字节**做对照：`repro_phantom_conflict.cjs <html路径>`。
     只跑修复后看到 PASS 说明不了问题——必须先证明修复前确实复现。
+18. **发布态要用两个脚本交叉核验**：`list_page_publish_artifacts.py` 曾对同一状态返回过
+    `code=56160 not published`，而 `download_page_artifacts.py --source publish` 却能取到产物
+    （`--source publish` 取 `meta.publishVersion` 定格版本，不跟随最新编辑态）。
+    2026-10-07 提交 v19 后发现发布态定格在 v18（266396B，不含 v19 改动）。
+    → 结论：commit 不会推进发布态，但发布态可能由他人在 UI 打开；每次交付都要核一遍并告知用户。
+19. 用户已在 UI 手动删除三张隔离测试表，并剔除了习惯定义表里的 `test` 自定义习惯（2026-10-07）。

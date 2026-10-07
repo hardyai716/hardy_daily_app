@@ -1,0 +1,10 @@
+{
+  "status": "local-candidate-not-deployed",
+  "version": 19,
+  "change": "Replace legacy HTML .xls exports with UTF-8 CSV and preserve numeric zero values",
+  "baseline_sha256": "1bf612740b94fc4053db7c80e9e5fd2e9b780d5c74d303ef81a2790eb2664ff2",
+  "candidate_sha256": "3ff80a8f0ae9faf6ed2f16bbed6f8ff0329b1cce215afb0e0b1f60dafe5f5b95",
+  "bytes": 266517,
+  "two_paths_identical": true,
+  "public_publish_allowed": false
+}

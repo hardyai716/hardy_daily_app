@@ -1,8 +1,10 @@
 // Native browser actions against the local candidate only. No cloud credentials or real records.
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 const fs=require('node:fs'),http=require('node:http'),path=require('node:path'),assert=require('node:assert/strict');
-const html=fs.readFileSync(path.join(__dirname,'../candidate/v15/index.html'));
-const results={method:'Isolated Chrome, native UI actions, local HTML, external network blocked',views:[],checks:[],pageErrors:[]};
+const target=process.argv[2]||path.join(__dirname,'../candidate/v15/index.html');
+const resultPath=process.argv[3]||path.join(__dirname,'browser-results.json');
+const html=fs.readFileSync(target);
+const results={method:'Isolated Chrome, native UI actions, local HTML, external network blocked',target,views:[],checks:[],pageErrors:[]};
 let browser,server;
 (async()=>{
   server=http.createServer((req,res)=>{
@@ -74,6 +76,6 @@ let browser,server;
   assert.deepEqual(results.pageErrors,[]);
   console.log(JSON.stringify({viewChecks:results.views.length,checks:results.checks,pageErrors:results.pageErrors},null,2));
 })().catch(error=>{results.failure=error.message;console.error(error);process.exitCode=1;}).finally(async()=>{
-  fs.writeFileSync(path.join(__dirname,'browser-results.json'),JSON.stringify(results,null,2)+'\n');
+  fs.writeFileSync(resultPath,JSON.stringify(results,null,2)+'\n');
   if(browser)await browser.close();if(server)server.close();
 });
