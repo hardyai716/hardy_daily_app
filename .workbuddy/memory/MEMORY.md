@@ -11,10 +11,11 @@
 - 编辑态：https://www.workbuddy.cn/space/d/FxXXoCbSbuuHuowGoydwLH
 - 历史公开态：https://workbuddy.link/p/FxXXoCbSbuuHuowGoydwLH（新要求下需取消发布，不再作为手机入口）
 - 产物：index.html 与 life-all-in-one.html **字节相同**（同一页面两路径），改一个必须同步改另一个。
-- 版本史：v6 暖色纸感 / v7 删除弹层+触屏常显 / v8 云端主键 `_id` / v9 习惯 upsert / v10 自绘日期时间面板 / v11 时间面板点击修复 / v12 时间选择改 iPhone 式循环滚轮 / v13 时间面板居中弹出 / v14 滚轮数字列内水平居中（`.dt-col button` 加 width:100%，button 是 shrink-to-fit）/ **v15 字段完整性与同步状态重写（补 40 字段 + 新增习惯定义、个人设置两表 + 习惯定义与打卡分离）/ v16 对齐双路径字节 / v17 修复同步循环卡顿（collectEntities O(n²)→O(n)、旧账目升级改有条件、addRecord 返回值兜底、SYNC_BATCH 限流、continuation 跳过全量 pull）/ v18 修复幽灵冲突（写入回读只比内容不比变更标记；全量拉取时两端一致即清冲突；acknowledgeTask 允许内容相等即完成；无队列项的冲突也可解析）/ v19 导出改标准 CSV（UTF-8 BOM + 引号转义 + CRLF + .csv + text/csv;charset=utf-8；健身零值保留；= + - @ 制表符开头加公式防护）**。
-- 当前线上版本 v19（266517B，md5 `9b4bf2cb5af90d68ee4c3648ee3841b1`，未调用 publish_page.py）。回滚快照 `backup/日常集_v19_2026-10-07.html`。v15 模块在线上文件中的区域：`// v15 repair module.` 起、`const LANG_PARAM` 止——后续改同步逻辑可直接对该区域做字节替换，不必从 v14 基线重建。
-- v19 已把记账和健身导出从 HTML 伪 `.xls` 改为 UTF-8 BOM CSV，健身 `0` 值不再变空，文本公式前缀已防护；提交后发现 WorkBuddy iframe 的 sandbox 缺少 `allow-downloads`，页内 `<a download>` 被 Chrome 拦截。
-- v20 本地候选位于 `candidate/v20/`：共用 `downloadBlob` 改为在 `allow-popups-to-escape-sandbox` 允许的非沙箱弹窗中触发下载；等价 sandbox 回归证明 v19 被拦、v20 的 CSV 与完整 JSON 备份均能下载。尚未提交云端。
+- 版本史：v6 暖色纸感 / v7 删除弹层+触屏常显 / v8 云端主键 `_id` / v9 习惯 upsert / v10 自绘日期时间面板 / v11 时间面板点击修复 / v12 时间选择改 iPhone 式循环滚轮 / v13 时间面板居中弹出 / v14 滚轮数字列内水平居中（`.dt-col button` 加 width:100%，button 是 shrink-to-fit）/ **v15 字段完整性与同步状态重写（补 40 字段 + 新增习惯定义、个人设置两表 + 习惯定义与打卡分离）/ v16 对齐双路径字节 / v17 修复同步循环卡顿（collectEntities O(n²)→O(n)、旧账目升级改有条件、addRecord 返回值兜底、SYNC_BATCH 限流、continuation 跳过全量 pull）/ v18 修复幽灵冲突（写入回读只比内容不比变更标记；全量拉取时两端一致即清冲突；acknowledgeTask 允许内容相等即完成；无队列项的冲突也可解析）/ v19 导出改标准 CSV（UTF-8 BOM + 引号转义 + CRLF + .csv + text/csv;charset=utf-8；健身零值保留；= + - @ 制表符开头加公式防护） / v20 修复托管页面导出按钮无响应（沙箱内改弹窗路径触发下载） / v21 修复热力图标题行两端贴边裁切 + 辅助文字字号与对比度**。
+- 当前线上版本 v21（267643B，sha256 `9d361338e79758c6ce34729eff69c291b7d035e75417ab54f406e287d5cecc8a`，md5 `f6acd24ed628500a34a175ce7a3c77d3`，未调用 publish_page.py）。回滚快照 `backup/日常集_v21_2026-10-07.html`。v15 模块在线上文件中的区域：`// v15 repair module.` 起、`const LANG_PARAM` 止——后续改同步逻辑可直接对该区域做字节替换，不必从 v14 基线重建。
+- v20 已部署（云端版本 20，267443B，md5 `19c90688a229f4ea7a7d23d7beb271e1`）：共用 `downloadBlob` 改为在 `allow-popups-to-escape-sandbox` 允许的非沙箱弹窗中触发下载；等价 sandbox 回归 + 真实托管页面点击验收均通过（记账 CSV / 健身 CSV / 完整 JSON 备份三项正常）。
+- v21 已部署（云端版本 21，提交 `tx_6JCsjaCyAdEL7CSxrwoX3Q`，baseVersion 20，提交信息「修复下载按钮和热力图标题显示」，未公开发布）：在 v20 下载修复之上，为习惯页热力图标题行（`.heatmap-panel .panel-head`）增加 `padding-inline:6px`，两处辅助文字（`.eyebrow` / `.mini-note`）由 10px 浅灰改为 11px `#6f655b`，`.mini-note` 加 `flex:0 0 auto;white-space:nowrap`。真实托管页面验收：下载三项正常、标题 1440/390 左右端内缩 7px 无裁切、0 page error。两路径提交后仍字节一致（无 DOM 新增，无 pnid 漂移）。
+- 上一版本 v19 的说明：v19 已把记账和健身导出从 HTML 伪 `.xls` 改为 UTF-8 BOM CSV，健身 `0` 值不再变空，文本公式前缀已防护；提交后发现 WorkBuddy iframe 的 sandbox 缺少 `allow-downloads`，页内 `<a download>` 被 Chrome 拦截（正是 v20 修的）。
 
 ## 项目形态（重要，回答「后端代码在哪」类问题时用）
 - **没有后端代码**。整个工作台 = 一个 240KB 的单文件 HTML（HTML/CSS/JS 全内联、零外部依赖）

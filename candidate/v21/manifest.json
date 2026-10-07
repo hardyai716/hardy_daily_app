@@ -1,0 +1,10 @@
+{
+  "status": "local-candidate-not-deployed",
+  "version": 21,
+  "change": "Preserve sandbox downloads and make heatmap edge labels readable",
+  "baseline_sha256": "986c87b632b56dcdaf88b16f14156fb6da029119129f4016cb643ff5135c1a7a",
+  "candidate_sha256": "9d361338e79758c6ce34729eff69c291b7d035e75417ab54f406e287d5cecc8a",
+  "bytes": 267643,
+  "two_paths_identical": true,
+  "public_publish_allowed": false
+}

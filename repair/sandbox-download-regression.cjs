@@ -6,7 +6,8 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 
 const oldHtml = fs.readFileSync(path.join(__dirname, '../candidate/v19/index.html'));
-const newHtml = fs.readFileSync(path.join(__dirname, '../candidate/v20/index.html'));
+const newTarget = process.argv[2] || path.join(__dirname, '../candidate/v20/index.html');
+const newHtml = fs.readFileSync(newTarget);
 const sandbox = [
   'allow-scripts',
   'allow-same-origin',
@@ -17,6 +18,7 @@ const sandbox = [
 ].join(' ');
 const result = {
   method: 'Local outer page with the exact WorkBuddy iframe sandbox flags',
+  target: newTarget,
   checks: [],
 };
 let server;
@@ -87,7 +89,7 @@ async function open(mode) {
   let download = await pending;
   assert.ok(download);
   assert.equal(download.suggestedFilename(), '日常集-完整备份-2026-10-07.json');
-  result.checks.push('v20 complete JSON backup downloads through an escaped popup');
+  result.checks.push('candidate complete JSON backup downloads through an escaped popup');
 
   await current.frame.locator('.side-nav [data-nav=money]').click();
   pending = waitForDownload(current.context);
@@ -95,7 +97,7 @@ async function open(mode) {
   download = await pending;
   assert.ok(download);
   assert.equal(download.suggestedFilename(), '记账流水-2026-10-07.csv');
-  result.checks.push('v20 money CSV downloads through the same path');
+  result.checks.push('candidate money CSV downloads through the same path');
 
   fs.writeFileSync(
     path.join(__dirname, 'sandbox-download-results.json'),
