@@ -112,7 +112,7 @@ function parseCsv(buffer) {
   let download = await pending;
   const moneyBytes = await readDownload(download);
   const moneyRows = parseCsv(moneyBytes);
-  assert.equal(download.suggestedFilename(), '记账流水-2026-10-07.csv');
+  assert.match(download.suggestedFilename(), /^记账流水-\d{4}-\d{2}-\d{2}\.csv$/);
   assert.equal(moneyBytes.subarray(0, 3).toString('hex'), 'efbbbf');
   assert.deepEqual(moneyRows[0], ['日期', '类型', '分类', '金额', '备注']);
   assert.equal(moneyRows[1][3], '12.34');
@@ -131,7 +131,7 @@ function parseCsv(buffer) {
   download = await pending;
   const fitnessBytes = await readDownload(download);
   const fitnessRows = parseCsv(fitnessBytes);
-  assert.equal(download.suggestedFilename(), '减脂记录-2026-10-07.csv');
+  assert.match(download.suggestedFilename(), /^减脂记录-\d{4}-\d{2}-\d{2}\.csv$/);
   assert.deepEqual(fitnessRows[0], [
     '日期', '体重(kg)', '体脂率(%)', '摄入热量(kcal)', '运动分钟', '备注',
   ]);

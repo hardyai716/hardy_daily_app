@@ -99,7 +99,7 @@ async function recordNotes(page) {
   const backup = await downloadBytes(download);
   const packet = JSON.parse(backup.toString('utf8'));
   assert.equal(packet.format, 'richangji-recovery-v22');
-  assert.equal(packet.schemaVersion, 3);
+  assert.equal(packet.schemaVersion, 4);
   assert.equal(packet.counts.money, 1);
   results.checks.push('v22 backup contains version metadata and record counts');
   markErrors('export');

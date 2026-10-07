@@ -1,0 +1,16 @@
+{
+  "status": "deployed-and-published",
+  "version": 29,
+  "change": "Add daily, weekly, monthly, and before-time habit goals",
+  "baseline_sha256": "6268e3fcf5d08843c5201ed3db743c6097a08c2b75ef1cac333e591e3379525b",
+  "candidate_sha256": "caeb0e053f979929f700c2119b84e2535c9bf7385d6018ef279f4edd6126c2c9",
+  "bytes": 320207,
+  "two_paths_identical": true,
+  "cloud_schema_changes": false,
+  "cloud_version": 26,
+  "published_artifact": "_zpoPrQAwb8w",
+  "deployed_bytes": 322238,
+  "deployed_sha256": "8b30fcbed97ad05995d39a3dbb4d21f7425e99d7b16e9564c3ee443988b2a7d3",
+  "public_url": "https://www.workbuddy.link/p/FxXXoCbSbuuHuowGoydwLH",
+  "publish_requires_explicit_instruction": true
+}

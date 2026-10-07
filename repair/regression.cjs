@@ -66,6 +66,12 @@ function env({cloud=fakeCloud(),storage={},sdk=true,bind=true,quota=false}={}){
       coverStorageError:typeof coverStorageError==='function'?coverStorageError:(()=>''),
       storageSummary:typeof storageSummary==='function'?storageSummary:(()=>''),
       storageDiagnostics:typeof storageDiagnostics==='function'?storageDiagnostics:(()=>''),
+      habitPeriodBounds:typeof habitPeriodBounds==='function'?habitPeriodBounds:null,
+      habitProgress:typeof habitProgress==='function'?habitProgress:null,
+      habitStreak:typeof habitStreak==='function'?habitStreak:null,
+      logicalHabitDate:typeof logicalHabitDate==='function'?logicalHabitDate:null,
+      timeToHabitMinutes:typeof timeToHabitMinutes==='function'?timeToHabitMinutes:null,
+      habitMinutesToTime:typeof habitMinutesToTime==='function'?habitMinutesToTime:null,
       removeHabitCustom,restoreHabit,pushHabit,resolveSyncConflict,
       autoConfirm(){askConfirm=()=>Promise.resolve(true)}
     };`;
@@ -273,6 +279,40 @@ async function main(){
     assert.equal(reloaded.api.state.habits[0].pendingAdd,undefined);await seed(reloaded);
     assert.equal(reloaded.api.state.habits[0].entries['2026-10-06'],2);
     assert.equal(e.cloud.tables[e.api.SYNC_TABLES.checkin].length,1);
+  });
+  await test('habit periods handle ISO-week, leap-month, aggregation and legacy defaults',async()=>{
+    const e=env();assert.ok(e.api.habitPeriodBounds);
+    assert.deepEqual(clone(e.api.habitPeriodBounds('week','2027-01-01')),{start:'2026-12-28',end:'2027-01-03',key:'2026-12-28'});
+    assert.deepEqual(clone(e.api.habitPeriodBounds('month','2028-02-29')),{start:'2028-02-01',end:'2028-02-29',key:'2028-02'});
+    const weekly={id:'weekly',name:'游泳',type:'check',period:'week',rule:'atLeast',target:3,unit:'次',tone:'sage',entries:{'2026-10-05':1,'2026-10-07':1}};
+    assert.deepEqual(clone(e.api.habitProgress(weekly,'2026-10-08')).value,2);assert.equal(e.api.habitProgress(weekly,'2026-10-08').done,false);
+    weekly.entries['2026-10-09']=1;assert.equal(e.api.habitProgress(weekly,'2026-10-08').done,true);
+    const monthly={...weekly,id:'monthly',period:'month',target:5,entries:{'2028-02-01':2,'2028-02-29':3}};
+    assert.equal(e.api.habitProgress(monthly,'2028-02-10').value,5);assert.equal(e.api.habitProgress(monthly,'2028-02-10').done,true);
+    const legacy=clone(e.api.state);delete legacy.habits[0].period;delete legacy.habits[0].rule;
+    const normalized=e.api.normalizeState(legacy);assert.equal(normalized.habits[0].period,'day');assert.equal(normalized.habits[0].rule,'atLeast');
+  });
+  await test('before-time habits use a 04:00 logical day and a continuous night timeline',async()=>{
+    const e=env();assert.equal(e.api.logicalHabitDate(new Date(2026,9,8,3,30),4),'2026-10-07');
+    assert.equal(e.api.logicalHabitDate(new Date(2026,9,8,4,0),4),'2026-10-08');
+    assert.equal(e.api.timeToHabitMinutes('23:30',4),1410);assert.equal(e.api.timeToHabitMinutes('00:30',4),1470);
+    assert.equal(e.api.habitMinutesToTime(1470),'00:30');
+    const habit={id:'sleep-time',name:'入睡',type:'time',period:'day',rule:'beforeTime',target:1,targetTime:'01:00',dayBoundary:4,unit:'时间',tone:'plum',entries:{}};
+    for(const [value,done] of [['23:30',true],['00:30',true],['01:30',false]]){
+      habit.entries={'2026-10-07':e.api.timeToHabitMinutes(value,4)};
+      assert.equal(e.api.habitProgress(habit,'2026-10-07').done,done,value);
+    }
+  });
+  await test('period and time metadata round-trip without changing check-in stable IDs',async()=>{
+    const e=env();await seed(e);
+    const weekly={id:'habit-swim',key:'custom-swim',name:'游泳',type:'check',period:'week',rule:'atLeast',target:3,targetTime:'',dayBoundary:4,unit:'次',tone:'sage',entries:{'2026-10-06':1},sample:false};
+    const timed={id:'habit-sleep-time',key:'custom-sleep-time',name:'一点前睡觉',type:'time',period:'day',rule:'beforeTime',target:1,targetTime:'01:00',dayBoundary:4,unit:'时间',tone:'plum',entries:{'2026-10-06':1470},sample:false};
+    e.api.state.habits.push(weekly,timed);e.api.saveState();await seed(e);
+    assert.equal(e.cloud.tables[e.api.SYNC_TABLES.checkin].some(row=>row['稳定ID']==='habit-swim/2026-10-06'),true);
+    const second=env({cloud:e.cloud});await seed(second);
+    assert.equal(second.api.state.habits.find(h=>h.id==='habit-swim').period,'week');
+    assert.equal(second.api.state.habits.find(h=>h.id==='habit-sleep-time').targetTime,'01:00');
+    assert.equal(second.api.state.habits.find(h=>h.id==='habit-sleep-time').entries['2026-10-06'],1470);
   });
   fs.writeFileSync(resultPath,JSON.stringify({method:'Full page JS in isolated VM; synthetic SDK only; no production requests',passed:results.length,results},null,2)+'\n');
 }
