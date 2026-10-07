@@ -1,0 +1,66 @@
+{
+  "title": "日常集 · 习惯定义",
+  "space_id": "pHFugBpWhfhSI7GT5Gssex",
+  "properties": [
+    {
+      "name": "稳定ID",
+      "config": {
+        "text": ""
+      }
+    },
+    {
+      "name": "变更ID",
+      "config": {
+        "text": ""
+      }
+    },
+    {
+      "name": "完整数据",
+      "config": {
+        "text": ""
+      }
+    },
+    {
+      "name": "已删除",
+      "config": {
+        "checkbox": false
+      }
+    },
+    {
+      "name": "名称",
+      "config": {
+        "text": ""
+      }
+    },
+    {
+      "name": "类型",
+      "config": {
+        "text": ""
+      }
+    },
+    {
+      "name": "目标",
+      "config": {
+        "number": 0
+      }
+    },
+    {
+      "name": "单位",
+      "config": {
+        "text": ""
+      }
+    },
+    {
+      "name": "主题色",
+      "config": {
+        "text": ""
+      }
+    },
+    {
+      "name": "已归档",
+      "config": {
+        "checkbox": false
+      }
+    }
+  ]
+}

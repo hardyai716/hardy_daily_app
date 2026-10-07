@@ -1,0 +1,9 @@
+{
+  "method": "Offline command integration with synthetic inputs",
+  "passed": 3,
+  "checks": [
+    "exact record-ID mapping keeps same-name habits separate and zero as tombstone",
+    "missing mapping fails without producing write batches",
+    "duplicate habit/day fails without producing write batches"
+  ]
+}

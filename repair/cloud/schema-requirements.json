@@ -1,0 +1,384 @@
+{
+  "money": {
+    "database_id": "wMPUiJRjq1FFJjDkaRDauJ",
+    "fields": [
+      {
+        "name": "稳定ID",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "变更ID",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "完整数据",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "已删除",
+        "config": {
+          "checkbox": false
+        }
+      },
+      {
+        "name": "收支方向",
+        "config": {
+          "text": ""
+        }
+      }
+    ]
+  },
+  "planner": {
+    "database_id": "fdubBrDZ1vcncxRNlD4hVr",
+    "fields": [
+      {
+        "name": "稳定ID",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "变更ID",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "完整数据",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "已删除",
+        "config": {
+          "checkbox": false
+        }
+      },
+      {
+        "name": "时间",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "优先级",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "备注",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "提醒设置",
+        "config": {
+          "checkbox": false
+        }
+      }
+    ]
+  },
+  "fitness": {
+    "database_id": "yUBsXsNzZ2vj7CuewMBpdQ",
+    "fields": [
+      {
+        "name": "稳定ID",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "变更ID",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "完整数据",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "已删除",
+        "config": {
+          "checkbox": false
+        }
+      },
+      {
+        "name": "摄入热量",
+        "config": {
+          "number": 0
+        }
+      },
+      {
+        "name": "运动分钟",
+        "config": {
+          "number": 0
+        }
+      }
+    ]
+  },
+  "home": {
+    "database_id": "N0r7pAVJAK35d6XiK2NsP5",
+    "fields": [
+      {
+        "name": "稳定ID",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "变更ID",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "完整数据",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "已删除",
+        "config": {
+          "checkbox": false
+        }
+      },
+      {
+        "name": "记录日期",
+        "config": {
+          "date": {
+            "format": "yyyy-mm-dd"
+          }
+        }
+      },
+      {
+        "name": "数量描述",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "分类",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "优先级",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "购入日期",
+        "config": {
+          "date": {
+            "format": "yyyy-mm-dd"
+          }
+        }
+      }
+    ]
+  },
+  "media": {
+    "database_id": "B66hZomeHQTqJEWsIYxmCH",
+    "fields": [
+      {
+        "name": "稳定ID",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "变更ID",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "完整数据",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "已删除",
+        "config": {
+          "checkbox": false
+        }
+      },
+      {
+        "name": "记录日期",
+        "config": {
+          "date": {
+            "format": "yyyy-mm-dd"
+          }
+        }
+      },
+      {
+        "name": "封面内容",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "观看状态",
+        "config": {
+          "text": ""
+        }
+      }
+    ]
+  },
+  "habit": {
+    "database_id": null,
+    "fields": [
+      {
+        "name": "稳定ID",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "变更ID",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "完整数据",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "已删除",
+        "config": {
+          "checkbox": false
+        }
+      },
+      {
+        "name": "名称",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "类型",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "目标",
+        "config": {
+          "number": 0
+        }
+      },
+      {
+        "name": "单位",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "主题色",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "已归档",
+        "config": {
+          "checkbox": false
+        }
+      }
+    ]
+  },
+  "checkin": {
+    "database_id": "6pJ5uqS3eeLVVnDfTh39qB",
+    "fields": [
+      {
+        "name": "稳定ID",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "变更ID",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "完整数据",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "已删除",
+        "config": {
+          "checkbox": false
+        }
+      },
+      {
+        "name": "习惯ID",
+        "config": {
+          "text": ""
+        }
+      }
+    ]
+  },
+  "settings": {
+    "database_id": null,
+    "fields": [
+      {
+        "name": "稳定ID",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "变更ID",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "完整数据",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "已删除",
+        "config": {
+          "checkbox": false
+        }
+      },
+      {
+        "name": "设置项",
+        "config": {
+          "text": ""
+        }
+      },
+      {
+        "name": "设置内容",
+        "config": {
+          "text": ""
+        }
+      }
+    ]
+  }
+}

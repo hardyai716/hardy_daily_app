@@ -6,6 +6,9 @@
 
 # 忽略账单导入的中间产物（含个人财务原始数据，不上传）
 import_work/
+private_work/
+node_modules/
+__pycache__/
 
 # 系统与编辑器
 .DS_Store

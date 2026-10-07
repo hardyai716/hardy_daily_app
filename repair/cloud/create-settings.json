@@ -1,0 +1,42 @@
+{
+  "title": "日常集 · 个人设置",
+  "space_id": "pHFugBpWhfhSI7GT5Gssex",
+  "properties": [
+    {
+      "name": "稳定ID",
+      "config": {
+        "text": ""
+      }
+    },
+    {
+      "name": "变更ID",
+      "config": {
+        "text": ""
+      }
+    },
+    {
+      "name": "完整数据",
+      "config": {
+        "text": ""
+      }
+    },
+    {
+      "name": "已删除",
+      "config": {
+        "checkbox": false
+      }
+    },
+    {
+      "name": "设置项",
+      "config": {
+        "text": ""
+      }
+    },
+    {
+      "name": "设置内容",
+      "config": {
+        "text": ""
+      }
+    }
+  ]
+}

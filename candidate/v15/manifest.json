@@ -1,0 +1,9 @@
+{
+  "status": "local-candidate-not-deployed",
+  "baseline_sha256": "96a719d0c8427b947719f091740cdd548360897587046ce9b6ef76f5d15acf95",
+  "candidate_sha256": "c0b79ba8cb7b8ea22177f5d7d7631a2653e01d582dc7eade12a16a8e48dd2fa0",
+  "bytes": 265982,
+  "two_paths_identical": true,
+  "tables_bound": true,
+  "public_publish_allowed": false
+}
