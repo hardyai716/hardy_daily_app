@@ -1,0 +1,10 @@
+{
+  "target": "candidate/v28/index.html",
+  "checks": [
+    "legacy done state migrates to the ISO week active during upgrade",
+    "day rollover refreshes labels and blank defaults while preserving a real draft",
+    "a new ISO week starts with an incomplete plan",
+    "toggling affects only the current week and preserves prior-week history"
+  ],
+  "pageErrors": []
+}

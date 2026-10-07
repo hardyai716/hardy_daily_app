@@ -1,10 +1,14 @@
 {
-  "status": "local-candidate-not-deployed",
+  "status": "deployed-and-published",
   "version": 28,
   "change": "Simplify the main sync status and move deletion counts into diagnostics",
   "baseline_sha256": "8294040e685f2e6ac0a7565c62cf1e55c93f8cb70175ae5fd8264375e239a0ec",
   "candidate_sha256": "6268e3fcf5d08843c5201ed3db743c6097a08c2b75ef1cac333e591e3379525b",
   "bytes": 313311,
   "two_paths_identical": true,
+  "cloud_version": 24,
+  "transaction_id": "tx_632WGaY6ac8IRhhdIGGVdZ",
+  "published_artifact": "xVoBsy92FpOJ",
+  "deployed_sha256": "6268e3fcf5d08843c5201ed3db743c6097a08c2b75ef1cac333e591e3379525b",
   "publish_requires_explicit_instruction": true
 }
