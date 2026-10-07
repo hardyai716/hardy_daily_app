@@ -19,6 +19,13 @@ function waitForAnyDownload(context,timeout=5000){return new Promise((resolve,re
   await context.route('**/*',route=>route.request().url().startsWith(base)?route.continue():route.abort());
   const page=await context.newPage();page.on('pageerror',e=>results.pageErrors.push(e.message));
   await page.goto(base,{waitUntil:'load'});await page.locator('#syncSummary').filter({hasText:'已存本机'}).waitFor();
+  assert.match(await page.locator('#syncDetail').textContent(),/本机缓存约 .* · 未连接云端/);
+  assert.doesNotMatch(await page.locator('#syncDetail').textContent(),/删除标记/);
+  assert.equal(await page.locator('#syncDiagnosticsPanel').isVisible(),true);
+  assert.equal(await page.locator('#syncDiagnosticsText').isVisible(),false);
+  await page.locator('#syncDiagnosticsPanel summary').click();
+  assert.match(await page.locator('#syncDiagnosticsText').textContent(),/删除标记 0 项.*无需处理/);
+  results.checks.push({name:'primary sync status stays actionable while deletion counts remain in diagnostics',passed:true});
   for(const width of [1440,390]){
     await page.setViewportSize({width,height:width===390?844:1000});
     for(const key of ['dashboard','money','habits','fitness','planner','home','media','archive']){

@@ -1,0 +1,10 @@
+{
+  "status": "local-candidate-not-deployed",
+  "version": 28,
+  "change": "Simplify the main sync status and move deletion counts into diagnostics",
+  "baseline_sha256": "8294040e685f2e6ac0a7565c62cf1e55c93f8cb70175ae5fd8264375e239a0ec",
+  "candidate_sha256": "6268e3fcf5d08843c5201ed3db743c6097a08c2b75ef1cac333e591e3379525b",
+  "bytes": 313311,
+  "two_paths_identical": true,
+  "publish_requires_explicit_instruction": true
+}

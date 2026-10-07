@@ -65,6 +65,7 @@ function env({cloud=fakeCloud(),storage={},sdk=true,bind=true,quota=false}={}){
       normalizeWeeklyPlan:typeof normalizeWeeklyPlan==='function'?normalizeWeeklyPlan:(items=>items),
       coverStorageError:typeof coverStorageError==='function'?coverStorageError:(()=>''),
       storageSummary:typeof storageSummary==='function'?storageSummary:(()=>''),
+      storageDiagnostics:typeof storageDiagnostics==='function'?storageDiagnostics:(()=>''),
       removeHabitCustom,restoreHabit,pushHabit,resolveSyncConflict,
       autoConfirm(){askConfirm=()=>Promise.resolve(true)}
     };`;
@@ -145,7 +146,9 @@ async function main(){
   await test('recent local writes query only the changed entity; forced refresh still pulls all tables',async()=>{
     const e=env();await seed(e);e.cloud.calls.length=0;
     assert.match(e.api.coverStorageError('x'.repeat(260001)),/过大/);
-    assert.match(e.api.storageSummary(),/本机数据约/);
+    assert.match(e.api.storageSummary(),/本机缓存约.*同步正常/);
+    assert.doesNotMatch(e.api.storageSummary(),/删除标记/);
+    assert.match(e.api.storageDiagnostics(),/删除标记 0 项.*无需处理/);
     e.api.state.records.push(record('targeted-1','money',{flow:'expense',amount:9,category:'其他',note:'定向读取'}));
     e.api.saveState();await e.api.runSync();
     const targeted=e.cloud.calls.filter(call=>call.method==='query');
