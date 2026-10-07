@@ -42,6 +42,12 @@
 - **`.gitignore` 排除 `import_work/`**（含 2026 真实账单原始数据，不上公开仓库）与 tmp_*/verify_*/*backup_v*/。
 - 跨设备接手路径：clone → 取 backup/ 最新快照 → 交给 AI 走「资料库事务下载/定向修改/上传+提交私人版本」流程（见根 README.md）。
 - 改版后应把新快照（`backup/日常集_vNN_日期.html`）提交并推送，让 git 成为版本回滚的唯一依据。
+- **仓库在 `hardy_daily_app/` 这一层**（外层「生活工作台」不是 git 仓库）。远端
+  `https://github.com/hardyai716/hardy_daily_app.git`，分支 main。
+  本机 git 身份用仓库级 `git config user.name/user.email` 设为 `涛哥 <taoge@example.com>`（沿用历史提交）。
+- 提交前必查：`git diff --cached --name-only | grep private_work` 必须为 0（那里有真实账单记录）；
+  再用中文关键词扫 `repair/`、`candidate/` 确认只有合成数据。
+  CRLF 用「暂存后字节数不变」校验，别只看 `.gitattributes`。
 
 ## 托管页面编辑铁律
 1. 改 HTML 一律以当轮事务 `.baseline/` 的**字节**为底做定向替换，禁用会全文件重写的方式
