@@ -23,6 +23,16 @@
   资料库**不支持版本回滚**，较大改动前先新增一份带日期的快照。
 - 临时工件目录（tmp_*/verify_*）用完即清；`memory/` 必须保留。
 
+## Git 仓库（2026-10-07 建立，用于版本回滚 + 跨设备搬运）
+- 仓库：`git@github.com:hardyai716/hardy_daily_app.git`，分支 `main`，本地根目录就是 `D:/my-project/生活工作台/`
+  （**独立仓库**，不是 D:/my-project 那个 hardy-windows-project；生活工作台目录内自成一个 .git）
+- 已跟踪：`backup/`（页面快照） + `.workbuddy/memory/`（项目记忆） + `README.md` + `.gitignore` + `.gitattributes`
+- **`.gitattributes` 必须是 `* -text`**：云端页面是 CRLF，若让 Git 做行尾转换（默认会 CRLF→LF），
+  拉回来再上传就会"整个文件都变了"，回滚比对失效。已验证克隆后仍 CRLF=1413、md5 与云端一致。
+- **`.gitignore` 排除 `import_work/`**（含 2026 真实账单原始数据，不上公开仓库）与 tmp_*/verify_*/*backup_v*/。
+- 跨设备接手路径：clone → 取 backup/ 最新快照 → 交给 AI 走「资料库下载/上传+提交+发布」流程（见根 README.md）。
+- 改版后应把新快照（`backup/日常集_vNN_日期.html`）提交并推送，让 git 成为版本回滚的唯一依据。
+
 ## 托管页面编辑铁律
 1. 改 HTML 一律以当轮事务 `.baseline/` 的**字节**为底做定向替换，禁用会全文件重写的方式
    （Edit 工具会把 CRLF→LF；python 必须 `io.open(..., newline='')`）。
