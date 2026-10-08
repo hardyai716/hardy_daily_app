@@ -19,8 +19,23 @@
 - 公开态：https://workbuddy.link/p/FxXXoCbSbuuHuowGoydwLH（2026-10-07 22:22 发布、23:05 更新为版本 24；HTTP 200。⚠️ 未登录即可读真实数据，见上）
 - 产物：index.html 与 life-all-in-one.html **字节相同**（同一页面两路径），改一个必须同步改另一个。
 - 版本史：v6 暖色纸感 / v7 删除弹层+触屏常显 / v8 云端主键 `_id` / v9 习惯 upsert / v10 自绘日期时间面板 / v11 时间面板点击修复 / v12 时间选择改 iPhone 式循环滚轮 / v13 时间面板居中弹出 / v14 滚轮数字列内水平居中 / v15 字段完整性与同步状态重写 / v16 对齐双路径 / v17 修复同步循环卡顿 / v18 修复幽灵冲突 / v19 标准 CSV / v20 沙箱下载 / v21 热力图标题 / **v22 完整备份恢复+空值清理 / v23 五类记录编辑 / v24 账目搜索日期分页 / v25 跨日+ISO 周计划 / v26 定向同步读取+存储保护 / v27 手机外观设置入口**。
-- 当前线上**编辑态版本 34**（= 本地候选 v33 的内容，390732B，sha256 `a38ee4d05d2c582a14362cacdde53b4ca7259efad578483d1a35334a888d91ce`，md5 `992456876940978638d5a4aaa76108ab`，两路径字节一致；appVersion 33、schemaVersion 6）。回滚快照 `backup/日常集_v33_2026-10-08.html`（v28/v27/v21 快照仍保留）。v15 模块在线上文件中的区域：`// v15 repair module.` 起、`const LANG_PARAM` 止。
-- **本地候选 → 云端版本对照（每次都因 pnid 漂移占两个云端版本号）**：v28→24；v29→25/26；v30→27/28；v31→29/30；v32→31/32；v33→**33/34**。即「提交一次 + 对齐一次」，所以云端号 ≈ 本地号 ×2 − 32（近期规律）。
+- 当前线上**编辑态版本 35**（= 本地候选 v34 的内容，401458B，sha256 `1572eaa4e70aec96ebdbe277070819217bfecc59bf1827d5785a751879df93e1`，两路径字节一致，无 pnid 漂移；appVersion 34、schemaVersion 6）。提交事务 `tx_4VfZCeb6HGPAxm6iaFRiTt`（baseVersion 34 → newVersion 35，提交信息「加固备份校验、写入前冲突检查与逻辑日切换」）。回滚快照 `backup/日常集_v34_2026-10-08.html`（v33/v28/v27/v21 快照仍保留）。上一版线上编辑态是版本 34（= v33 内容，390732B，sha256 `a38ee4d0…`，appVersion 33）。
+- **v34 提交实测：无 pnid 漂移**（v34 改动全在 JS 内，未新增静态 DOM，`build_v34.py` 也只做 JS 替换）→ 一次提交即两路径逐字节一致，无需再对齐一次。**公开态未动**：publish 快照仍为 390186B / appVersion 32 / sha256 `a3bf7435…`（本次提交前后一致，未发布）。
+- v15 模块在线上文件中的区域：`// v15 repair module.` 起、`const LANG_PARAM` 止。
+- **本地候选 → 云端版本对照（每次都因 pnid 漂移占两个云端版本号）**：v28→24；v29→25/26；v30→27/28；v31→29/30；v32→31/32；v33→**33/34**；v34→**35（无漂移，只占一个号）**。即「提交一次 +（如漂移）对齐一次」。**v34 起若改动只在 JS、不新增静态 DOM，则一次提交即对齐**（v28/v34 均验证）。
+- **SDK 原子能力核实（2026-10-08）**：`window.__SMART_PAGE__.database.updateRecord` 只有 `{databaseId, recordId, properties?}` 按记录 ID 的增量更新，返回 `{id}`；agent 侧 `batch-update-records` 也只有 `recordId+properties`（1–100 条）。**不支持** CAS、按「变更ID」条件更新、乐观锁版本号、单记录事务；契约里无任何版本/条件/冲突失败返回语义（`database-sdk-contract.md` 方法集见 §11）。→ 多设备并发覆盖只能靠页面「写入前二次读取」缩短窗口，**不要宣称已被原子能力彻底解决**。
+- **平台其实提供文件/图片上传通道（2026-10-08 核实，页面尚未使用）**：SDK 契约 `page/database-sdk-contract.md` §7/§9 有
+  `db.uploadImage({data, contentType?, fileName?}) → url`（不需要 databaseId）、`db.uploadFile({nodeId, file}) → AttachmentItem`、
+  `db.getDownloadUrl` / `db.getPreviewUrl`。契约明确警告：**不要把 `data:image/...;base64,` 写进 `imageUrl`**（死链）。
+  → 但 v34 页面里 `uploadImage`/`uploadFile`/`getDownloadUrl`/`getPreviewUrl` 的**调用数均为 0**。
+- **书影音封面现状（v34 实测）**：`EXTRA_FIELDS.media` 有独立文本列 `'封面内容':'text'`，存的是 canvas 压出来的 base64
+  （`canvas.toDataURL('image/jpeg',.72)`，长度超 `COVER_MAX_CHARS=260000` 再降质量到 .5）；渲染处 `<img src="${item.cover}">`。
+  本机缓存警戒线 `LOCAL_STATE_WARN_BYTES=4MB`。→ 一张封面最多约 26 万字符，既进云端文本列也进 localStorage。
+  **因此「封面改走 uploadImage、`封面内容` 由 base64 换成 URL」无需改云表结构**（仍是同一 text 列），但需先实测沙箱 iframe 内能否调用 uploadImage。
+- **2026-10-08 14:08 用户决定：书影音暂不调整；v34 收尾，进入稳定观察期（约 3～7 天），本轮不做 v35。**
+  → 不要主动重提封面迁移/性能局部渲染/IndexedDB 迁移；观察期只在出现异常（待同步堆积、冲突自发出现、
+  本机缓存逼近 4MB、04:00 逻辑日异常）时才开新版本。**当前线上私人编辑态 = 云端版本 35 / appVersion 34 / schemaVersion 6**
+  （双路径 401458B / `1572eaa4…`，无 pnid 漂移），公开态未动。
 - **11 张表**：8 张原表 + 3 张资产表（v32 新建）：`DB_ASSET_ACCOUNTS=z3ZKTvlXqABNjVtkK4qVIe` / `DB_ASSET_SNAPSHOTS=CQWfV6AiPdnQ7aF6Ax3qL2` / `DB_ASSET_SNAPSHOT_ITEMS=l7KeEViudNhu2rrCAUI7Zb`；页面↔表关系 11/11。
 - **2026-10-08 11:48 用户决定：跳过 v33 重复提交。** 核查发现 v33 早已部署（cloud 33 + 对齐得 34），候选与线上除 pnid/属性顺序/空白外零差异 →
   未重复提交、未发布、线上未被改动。教训：**收到「提交 vX」指令先量测线上真实状态**（事务 baseVersion + 页面 appVersion + `--version N` 取回历史版本 + 候选对线上的语义 diff），

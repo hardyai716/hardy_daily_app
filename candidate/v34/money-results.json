@@ -1,0 +1,12 @@
+{
+  "target": "candidate/v34/index.html",
+  "checks": [
+    "large histories start at 60 rows while reporting the full result count",
+    "load more reaches every matching record without a hard display cap",
+    "keyword search matches notes and resets the visible-page limit",
+    "inclusive date range returns the expected records",
+    "invalid date ranges show a clear validation state",
+    "clear filter resets keyword, dates, category, and pagination"
+  ],
+  "pageErrors": []
+}

@@ -26,14 +26,16 @@ function waitForAnyDownload(context,timeout=5000){return new Promise((resolve,re
   await page.locator('#syncDiagnosticsPanel summary').click();
   assert.match(await page.locator('#syncDiagnosticsText').textContent(),/删除标记 0 项.*无需处理/);
   results.checks.push({name:'primary sync status stays actionable while deletion counts remain in diagnostics',passed:true});
+  const toolNames={fitness:'减脂健身',home:'待买清单',media:'书影音',archive:'时光档案'};
   for(const width of [1440,390]){
     await page.setViewportSize({width,height:width===390?844:1000});
     for(const key of ['dashboard','money','habits','fitness','planner','home','media','archive']){
       const nav=page.locator((width===390?'.mobile-nav':'.side-nav')+' [data-nav="'+key+'"]');
       if(await nav.count())await nav.click();
       else{
-        await page.locator('.mobile-nav [data-nav=dashboard]').click();
-        await page.locator('#view-dashboard '+(key==='archive'?'[data-nav=archive]':'[data-quick="'+key+'"]')).click();
+        await page.locator('.mobile-nav [data-nav=tools]').click();
+        await page.locator('#allTools .tool-card').filter({hasText:toolNames[key]})
+          .locator('[data-action=open-tool]').click();
       }
       await page.locator('#view-'+key+'.active').waitFor();
       const geometry=await page.evaluate(()=>({view:document.querySelector('.view.active').id,viewport:innerWidth,scroll:document.documentElement.scrollWidth}));

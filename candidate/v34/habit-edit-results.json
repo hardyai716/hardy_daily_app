@@ -1,0 +1,11 @@
+{
+  "target": "candidate/v34/index.html",
+  "checks": [
+    "a habit without history supports full in-place editing",
+    "an existing habit renames immediately while its goal changes next cycle",
+    "a pending goal change can be cancelled before it becomes effective",
+    "structural changes create a new habit and archive the old history",
+    "habit edit sheet fits a mobile viewport without horizontal overflow"
+  ],
+  "pageErrors": []
+}

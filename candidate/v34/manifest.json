@@ -1,0 +1,25 @@
+{
+  "status": "deployed-private-edit",
+  "version": 34,
+  "change": "Harden backup restore, DOM IDs, logical-day rollover, and pre-write conflict detection",
+  "source": "backup/life-all-in-one_v33_2026-10-08.html",
+  "generated_by": "repair/build_v34.py",
+  "baseline_sha256": "a38ee4d05d2c582a14362cacdde53b4ca7259efad578483d1a35334a888d91ce",
+  "candidate_sha256": "1572eaa4e70aec96ebdbe277070819217bfecc59bf1827d5785a751879df93e1",
+  "bytes": 401458,
+  "two_paths_identical": true,
+  "schema_version": 6,
+  "app_version": 34,
+  "database_bindings": 11,
+  "cloud_schema_changes": false,
+  "publish_requires_explicit_instruction": true,
+  "deployed": {
+    "at": "2026-10-08",
+    "cloud_edit_version": 35,
+    "transaction_id": "tx_4VfZCeb6HGPAxm6iaFRiTt",
+    "base_version": 34,
+    "readback_bytes": 401458,
+    "readback_sha256": "1572eaa4e70aec96ebdbe277070819217bfecc59bf1827d5785a751879df93e1",
+    "publish_snapshot_changed": false
+  }
+}

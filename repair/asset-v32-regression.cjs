@@ -10,6 +10,7 @@ const { webcrypto } = require('node:crypto');
 const target = process.argv[2] || path.join(__dirname, '../candidate/v32/index.html');
 const resultPath = process.argv[3] || path.join(__dirname, 'asset-v32-results.json');
 const html = fs.readFileSync(target, 'utf8');
+const expectedAppVersion = Number(html.match(/appVersion:(\d+)/)?.[1]);
 const results = { target, checks: [], pageErrors: [], cloudOrder: [] };
 let browser;
 let server;
@@ -115,8 +116,8 @@ async function runBrowserChecks() {
   await page.locator('#allTools .tool-card').filter({ hasText: '个人资产总账' })
     .locator('[data-action=open-tool]').click();
   assert.equal(await page.locator('#assetWorkspace').isVisible(), true);
-  assert.match(await page.locator('#assetSyncNote').textContent(), /保存在本机和完整备份/);
-  results.checks.push('desktop tools entry opens the local-first asset ledger');
+  assert.match(await page.locator('#assetSyncNote').textContent(), /保存在本机和完整备份|资产云同步已配置/);
+  results.checks.push('desktop tools entry opens the asset ledger with an explicit storage state');
 
   await addAccount(page, {
     name: '工资卡',
@@ -191,7 +192,7 @@ async function runBrowserChecks() {
   const backup = await downloadBytes(download);
   const packet = JSON.parse(backup.toString('utf8'));
   assert.equal(packet.schemaVersion, 6);
-  assert.equal(packet.appVersion, 32);
+  assert.equal(packet.appVersion, expectedAppVersion);
   assert.equal(packet.state.assetAccounts.length, 2);
   assert.equal(packet.state.assetSnapshots.length, 5);
   assert.equal(packet.state.assetSnapshotItems.length, 8);
@@ -303,12 +304,19 @@ function syncEnvironment(configured) {
     .map(match => match[1])
     .find(script => script.includes('Database SDK Integration'))
     .replace(/\r+\n/g, '\n');
-  if (configured) {
-    source = source
-      .replace("var DB_ASSET_ACCOUNTS = '';", "var DB_ASSET_ACCOUNTS = 'asset-accounts';")
-      .replace("var DB_ASSET_SNAPSHOTS = '';", "var DB_ASSET_SNAPSHOTS = 'asset-snapshots';")
-      .replace("var DB_ASSET_SNAPSHOT_ITEMS = '';", "var DB_ASSET_SNAPSHOT_ITEMS = 'asset-items';");
-  }
+  const assetIds = configured
+    ? ['asset-accounts', 'asset-snapshots', 'asset-items']
+    : ['', '', ''];
+  [
+    ['DB_ASSET_ACCOUNTS', assetIds[0]],
+    ['DB_ASSET_SNAPSHOTS', assetIds[1]],
+    ['DB_ASSET_SNAPSHOT_ITEMS', assetIds[2]],
+  ].forEach(([name, value]) => {
+    source = source.replace(
+      new RegExp(`var ${name} = '[^']*';`),
+      `var ${name} = '${value}';`
+    );
+  });
   const nodes = new Map();
   const node = id => {
     if (!nodes.has(id)) {

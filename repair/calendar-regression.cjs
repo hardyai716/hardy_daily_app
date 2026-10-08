@@ -64,6 +64,7 @@ const seededState = {
     localStorage.setItem('richangji-state-v1', JSON.stringify(state));
   }, { state: seededState, start: '2027-01-03T23:50:00' });
   await page.goto(`http://127.0.0.1:${server.address().port}/app#fitness`, { waitUntil: 'load' });
+  await page.locator('#todayLabel').filter({ hasText: '1 月 3 日' }).waitFor();
 
   assert.match(await page.locator('#todayLabel').textContent(), /1 月 3 日/);
   assert.equal(await page.locator('#moneyForm [name="date"]').inputValue(), '2027-01-03');
@@ -103,6 +104,32 @@ const seededState = {
   assert.equal(stored.settings.weeklyPlan[0].doneByWeek['2026-W53'], true);
   assert.equal(stored.settings.weeklyPlan[0].doneByWeek['2027-W01'], undefined);
   results.checks.push('toggling affects only the current week and preserves prior-week history');
+
+  await page.locator('[data-nav="habits"]').first().click();
+  await page.locator('[data-action="open-habit-settings"]').click();
+  const habitForm = page.locator('#habitSettingsForm');
+  await habitForm.locator('[name="name"]').fill('四点切日测试');
+  await habitForm.locator('[name="type"]').selectOption('time');
+  await habitForm.locator('[name="targetTime"]').fill('01:00');
+  await habitForm.locator('button[type="submit"]').click();
+  await page.locator('[data-action="close-habit-settings"]').last().click();
+  const timedHabit = page.locator('.daily-habit').filter({
+    has: page.getByRole('heading', { name: '四点切日测试', exact: true }),
+  });
+  await timedHabit.locator('[data-action="habit-time-input"]').fill('00:30');
+  await timedHabit.locator('[data-action="habit-time-save"]').click();
+  stored = await page.evaluate(() => JSON.parse(localStorage.getItem('richangji-state-v1')));
+  assert.equal(stored.habits.find(item => item.name === '四点切日测试').entries['2027-01-03'], 1470);
+
+  await page.evaluate(() => {
+    window.__testNow = new Date('2027-01-04T04:01:00').getTime();
+    window.dispatchEvent(new Event('focus'));
+  });
+  assert.equal(await timedHabit.locator('[data-action="habit-time-input"]').inputValue(), '');
+  assert.match(await timedHabit.textContent(), /未记录/);
+  stored = await page.evaluate(() => JSON.parse(localStorage.getItem('richangji-state-v1')));
+  assert.equal(stored.habits.find(item => item.name === '四点切日测试').entries['2027-01-04'], undefined);
+  results.checks.push('04:00 logical-day rollover clears the stale time entry without copying it forward');
 
   assert.deepEqual(results.pageErrors, []);
   fs.writeFileSync(resultPath, JSON.stringify(results, null, 2) + '\n');

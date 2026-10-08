@@ -1,0 +1,22 @@
+{
+  "target": "candidate/v34/index.html",
+  "checks": [
+    "desktop tools entry opens the asset ledger with an explicit storage state",
+    "v31 local state opens safely and persists v32 asset collections on first write",
+    "new accounts create full snapshots with asset, debt and net-worth totals",
+    "metadata edits avoid snapshots while balance edits create one full snapshot",
+    "batch balance update creates one snapshot and renders a non-empty trend",
+    "archiving changes the current ledger and preserves a full historical snapshot",
+    "complete backup and merge restore preserve all asset collections without duplication",
+    "mobile tools entry reaches preserved modules and assets fit 390px without overflow",
+    "missing asset table IDs keep assets local and do not block the original tables",
+    "configured asset tables write header, items, accounts, then complete the header"
+  ],
+  "pageErrors": [],
+  "cloudOrder": [
+    "snapshot-writing",
+    "snapshot-item",
+    "account",
+    "snapshot-complete"
+  ]
+}

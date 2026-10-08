@@ -10,7 +10,7 @@ const results=[];
 function fakeCloud(){
   const tables={},schemas={},calls=[];
   let serial=0;
-  const cloud={tables,schemas,calls,failQuery:false,loseResponse:false,pauseAdd:null,pauseQuery:null,
+  const cloud={tables,schemas,calls,failQuery:false,loseResponse:false,pauseAdd:null,pauseQuery:null,beforeGetRecord:null,
     db:{
       async getSchema({databaseId}){return {properties:schemas[databaseId]};},
       async query(p){
@@ -35,7 +35,10 @@ function fakeCloud(){
         const row=tables[p.databaseId].find(r=>r._id===p.recordId);assert.ok(row);
         Object.assign(row,unwrap(p.properties));return {id:p.recordId};
       },
-      async getRecord(p){return {result:clone((tables[p.databaseId]||[]).find(r=>r._id===p.recordId)||null)};},
+      async getRecord(p){
+        if(cloud.beforeGetRecord){const f=cloud.beforeGetRecord;cloud.beforeGetRecord=null;await f(p);}
+        return {result:clone((tables[p.databaseId]||[]).find(r=>r._id===p.recordId)||null)};
+      },
       async deleteRecord(){throw Error('Physical deletes must never be used');}
     }
   };
@@ -233,6 +236,23 @@ async function main(){
     const key='planner:conflict-1',c=b.api.state.sync.conflicts[key];assert.ok(c);
     assert.equal(c.local.data.title,'再次B');assert.equal(c.remote.value.data.title,'再次A');
     b.api.resolveSyncConflict(key,'local');await seed(b);assert.equal(b.api.state.records[0].data.title,'再次B');
+  });
+  await test('pre-write reread catches a remote edit that lands after the initial lookup',async()=>{
+    const e=env();await seed(e);
+    e.api.state.records.push(record('race-1','money',{flow:'expense',amount:10,category:'其他',note:'原始'}));
+    e.api.saveState();await seed(e);
+    e.api.state.records.find(r=>r.id==='race-1').data.note='本机修改';e.api.saveState();
+    const beforeUpdates=writes(e).filter(call=>call.method==='update').length;
+    e.cloud.beforeGetRecord=async p=>{
+      const row=e.cloud.tables[p.databaseId].find(item=>item._id===p.recordId);
+      const value=JSON.parse(row['完整数据']);value.data.note='另一设备修改';
+      row['完整数据']=JSON.stringify(value);row['备注']='另一设备修改';row['变更ID']='other-device';
+    };
+    await e.api.runSync();
+    const conflict=e.api.state.sync.conflicts['money:race-1'];
+    assert.ok(conflict);assert.equal(conflict.local.data.note,'本机修改');
+    assert.equal(conflict.remote.value.data.note,'另一设备修改');
+    assert.equal(writes(e).filter(call=>call.method==='update').length,beforeUpdates);
   });
   await test('delete while offline remains deleted after reload and second-device reads',async()=>{
     const e=env();await seed(e);
