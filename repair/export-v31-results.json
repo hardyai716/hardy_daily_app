@@ -1,0 +1,9 @@
+{
+  "method": "Exact candidate in isolated Chrome; external network blocked",
+  "target": "candidate/v31/index.html",
+  "checks": [
+    "money CSV uses UTF-8 BOM, standard rows, and neutralizes formulas",
+    "fitness CSV preserves calories=0 and duration=0"
+  ],
+  "pageErrors": []
+}

@@ -1,0 +1,11 @@
+{
+  "status": "local-candidate-not-deployed",
+  "version": 30,
+  "change": "Make before-time habits explicit to record, evaluate, update, and clear",
+  "baseline_sha256": "caeb0e053f979929f700c2119b84e2535c9bf7385d6018ef279f4edd6126c2c9",
+  "candidate_sha256": "9d6646aa2dd8cb8dec60dbba6ccda05cb32fff3ab02da172996217cf67ec5ce9",
+  "bytes": 322816,
+  "two_paths_identical": true,
+  "cloud_schema_changes": false,
+  "publish_requires_explicit_instruction": true
+}

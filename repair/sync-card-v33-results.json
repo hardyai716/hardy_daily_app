@@ -1,0 +1,31 @@
+{
+  "target": "candidate/v33/index.html",
+  "widths": [
+    {
+      "width": 320,
+      "height": 179.1875,
+      "nextTop": 338
+    },
+    {
+      "width": 375,
+      "height": 179.1875,
+      "nextTop": 338
+    },
+    {
+      "width": 390,
+      "height": 179.1875,
+      "nextTop": 338
+    },
+    {
+      "width": 414,
+      "height": 179.1875,
+      "nextTop": 338
+    }
+  ],
+  "checks": [
+    "sync card keeps one height across synced, syncing, pending and error states",
+    "content below the sync card keeps a stable layout position",
+    "status controls use fixed rows without mobile horizontal overflow"
+  ],
+  "pageErrors": []
+}

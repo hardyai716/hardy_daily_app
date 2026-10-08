@@ -19,7 +19,12 @@
 - 公开态：https://workbuddy.link/p/FxXXoCbSbuuHuowGoydwLH（2026-10-07 22:22 发布、23:05 更新为版本 24；HTTP 200。⚠️ 未登录即可读真实数据，见上）
 - 产物：index.html 与 life-all-in-one.html **字节相同**（同一页面两路径），改一个必须同步改另一个。
 - 版本史：v6 暖色纸感 / v7 删除弹层+触屏常显 / v8 云端主键 `_id` / v9 习惯 upsert / v10 自绘日期时间面板 / v11 时间面板点击修复 / v12 时间选择改 iPhone 式循环滚轮 / v13 时间面板居中弹出 / v14 滚轮数字列内水平居中 / v15 字段完整性与同步状态重写 / v16 对齐双路径 / v17 修复同步循环卡顿 / v18 修复幽灵冲突 / v19 标准 CSV / v20 沙箱下载 / v21 热力图标题 / **v22 完整备份恢复+空值清理 / v23 五类记录编辑 / v24 账目搜索日期分页 / v25 跨日+ISO 周计划 / v26 定向同步读取+存储保护 / v27 手机外观设置入口**。
-- 当前线上**编辑态版本 24**（= 本地候选 v28 的内容，313311B，sha256 `6268e3fcf5d08843c5201ed3db743c6097a08c2b75ef1cac333e591e3379525b`，md5 `71699c581697c9b62468894c1ad3fce5`）。回滚快照 `backup/日常集_v28_2026-10-07.html`（上一版 `backup/日常集_v27_2026-10-07.html` 仍保留）。v15 模块在线上文件中的区域：`// v15 repair module.` 起、`const LANG_PARAM` 止。
+- 当前线上**编辑态版本 34**（= 本地候选 v33 的内容，390732B，sha256 `a38ee4d05d2c582a14362cacdde53b4ca7259efad578483d1a35334a888d91ce`，md5 `992456876940978638d5a4aaa76108ab`，两路径字节一致；appVersion 33、schemaVersion 6）。回滚快照 `backup/日常集_v33_2026-10-08.html`（v28/v27/v21 快照仍保留）。v15 模块在线上文件中的区域：`// v15 repair module.` 起、`const LANG_PARAM` 止。
+- **本地候选 → 云端版本对照（每次都因 pnid 漂移占两个云端版本号）**：v28→24；v29→25/26；v30→27/28；v31→29/30；v32→31/32；v33→**33/34**。即「提交一次 + 对齐一次」，所以云端号 ≈ 本地号 ×2 − 32（近期规律）。
+- **11 张表**：8 张原表 + 3 张资产表（v32 新建）：`DB_ASSET_ACCOUNTS=z3ZKTvlXqABNjVtkK4qVIe` / `DB_ASSET_SNAPSHOTS=CQWfV6AiPdnQ7aF6Ax3qL2` / `DB_ASSET_SNAPSHOT_ITEMS=l7KeEViudNhu2rrCAUI7Zb`；页面↔表关系 11/11。
+- **2026-10-08 11:48 用户决定：跳过 v33 重复提交。** 核查发现 v33 早已部署（cloud 33 + 对齐得 34），候选与线上除 pnid/属性顺序/空白外零差异 →
+  未重复提交、未发布、线上未被改动。教训：**收到「提交 vX」指令先量测线上真实状态**（事务 baseVersion + 页面 appVersion + `--version N` 取回历史版本 + 候选对线上的语义 diff），
+  别只信指令里的「当前已部署的 vN」前提，避免无意义的重复提交与版本/pnid churn。
 - v28 已部署（云端编辑态 24，事务 `tx_632WGaY6ac8IRhhdIGGVdZ`，baseVersion 23，提交信息「优化同步状态文案，将删除标记移入诊断详情」）：仅 4 处 JS 改动——`renderSyncStatus` 增加刷新 `#syncDiagnosticsText`；备份 `appVersion:27→28`；`startSync()` 调 `setupSyncDiagnostics()`；`storageSummary()` 重写为「本机缓存约 X · <状态>」（去掉删除标记），新增 `storageDiagnostics()`（含删除标记数 + 无需处理）与 `setupSyncDiagnostics()`（运行时 `document.createElement('details')` 动态创建折叠面板）。
   → **新增 DOM 用 createElement 动态创建（不写进静态 HTML）→ 不触发平台 pnid 注入，两路径提交后直接字节一致**（这是避免漂移的可复用手法）。
   候选上传字节 313311B/sha256 `6268e3fc…`；回读与候选逐字节相同。验收：真实页面 6 项全过（正常态文案「本机缓存约 1.09 MB · 同步正常」、主状态无删除标记、诊断详情默认折叠、展开显示「删除标记 2 项 … 无需处理」、搜索/日期区间/加载更多/编辑/备份恢复正常），0 page error。

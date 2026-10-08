@@ -1,0 +1,86 @@
+{
+  "method": "Full page JS in isolated VM; synthetic SDK only; no production requests",
+  "passed": 20,
+  "results": [
+    {
+      "name": "normal field round trip, including nulls, units, date, dropped media and settings",
+      "passed": true
+    },
+    {
+      "name": "updates explicitly clear stale optional cloud columns while new records omit nulls",
+      "passed": true
+    },
+    {
+      "name": "offline create, reload and retry preserve local records and accurate status",
+      "passed": true
+    },
+    {
+      "name": "missing SDK/table/schema never reports synced and never writes malformed properties",
+      "passed": true
+    },
+    {
+      "name": "recent local writes query only the changed entity; forced refresh still pulls all tables",
+      "passed": true
+    },
+    {
+      "name": "legacy weekly completion is migrated to a week-keyed cloud setting",
+      "passed": true
+    },
+    {
+      "name": "late initial query cannot overwrite an edit created during the read",
+      "passed": true
+    },
+    {
+      "name": "response lost after successful add is reconciled by stable ID with no second add",
+      "passed": true
+    },
+    {
+      "name": "habit add then rapid decrement to zero finishes as a tombstone, not an active zero row",
+      "passed": true
+    },
+    {
+      "name": "custom same-name habits stay separate; archive/restore preserves definitions and check-ins",
+      "passed": true
+    },
+    {
+      "name": "independent edits merge; competing edits keep both and require a visible choice",
+      "passed": true
+    },
+    {
+      "name": "delete while offline remains deleted after reload and second-device reads",
+      "passed": true
+    },
+    {
+      "name": "legacy income note, unknown dates and recoverable local-only fields survive migration",
+      "passed": true
+    },
+    {
+      "name": "quota failure never sends unpersisted mutation; damaged local data is preserved",
+      "passed": true
+    },
+    {
+      "name": "duplicate stable IDs block writes instead of silently choosing a record",
+      "passed": true
+    },
+    {
+      "name": "malformed complete payload blocks the entire read before replacing local state",
+      "passed": true
+    },
+    {
+      "name": "legacy pendingAdd is removed and failed check-in can sync after reload",
+      "passed": true
+    },
+    {
+      "name": "habit periods handle ISO-week, leap-month, aggregation and legacy defaults",
+      "passed": true
+    },
+    {
+      "name": "before-time habits use a 04:00 logical day and a continuous night timeline",
+      "passed": true
+    },
+    {
+      "name": "period and time metadata round-trip without changing check-in stable IDs",
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>日常集 · 个人资产总账原型</title>
+  <!--
+    Prototype assumptions:
+    1. This is a balance-sheet snapshot tool, not a transaction ledger.
+    2. Asset and debt accounts are updated manually; each save creates one dated snapshot.
+    3. The production version reuses the workbench sync/backup framework but uses new cloud tables.
+    4. Example amounts below are fictional and exist only to validate information architecture.
+  -->
+  <style>
+    :root {
+      --paper:#f5f0e8; --card:#fffdfa; --ink:#29251f; --muted:#746d63;
+      --line:#ded5c8; --plum:#4d3045; --plum-soft:#e8dfe5;
+      --terra:#b65f42; --terra-soft:#f3dfd6; --sage:#627a67;
+      --sage-soft:#dfe8df; --sand:#a57c45; --sand-soft:#eee2ce;
+      --shadow:0 16px 40px rgba(63,48,36,.07); --sidebar:248px;
+    }
+    *{box-sizing:border-box}
+    html{background:var(--paper)}
+    body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+    button,input,select{font:inherit;color:inherit}
+    button{cursor:pointer}
+    svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .sprite{position:absolute;width:0;height:0;overflow:hidden}
+    .sidebar{position:fixed;inset:0 auto 0 0;width:var(--sidebar);padding:28px 20px;background:#ede6dc;border-right:1px solid rgba(104,87,68,.12);z-index:10}
+    .brand{display:flex;align-items:center;gap:12px;padding:0 8px 22px}
+    .brand-mark{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:var(--plum);color:#fff;font:700 19px/1 "Songti SC",serif}
+    .brand strong,.brand span{display:block}.brand strong{font:700 19px/1.2 "Songti SC",serif}.brand span{margin-top:4px;color:var(--muted);font-size:11px}
+    .nav-label{margin:15px 13px 6px;color:#9a9186;font-size:10px;font-weight:700}
+    .nav-item{width:100%;height:44px;padding:0 13px;border:0;border-radius:12px;background:transparent;display:flex;align-items:center;gap:12px;text-align:left;color:#5e574e}
+    .nav-item.active{background:var(--card);color:var(--plum);box-shadow:0 5px 16px rgba(75,57,43,.05);font-weight:700}
+    .main{min-height:100vh;margin-left:var(--sidebar);padding:0 42px 64px}
+    .topbar{min-height:104px;padding:25px 0 18px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px}
+    .eyebrow{margin:0 0 4px;color:#94887a;font-size:10px;font-weight:750;letter-spacing:.14em}
+    h1,h2,h3,p{margin-top:0}h1{margin:0;font:700 32px/1.2 "Songti SC",serif}h2{margin:0;font:700 20px/1.35 "Songti SC",serif}
+    .actions,.tabs{display:flex;align-items:center;gap:8px}
+    .btn{min-height:42px;padding:0 15px;border:1px solid var(--line);border-radius:12px;background:var(--card);display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:700}
+    .btn.primary{background:var(--plum);border-color:var(--plum);color:#fff}
+    .panel{min-width:0;padding:22px;border:1px solid rgba(111,89,67,.09);border-radius:22px;background:var(--card);box-shadow:var(--shadow)}
+    .summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
+    .summary{min-height:128px;padding:22px;border-radius:18px;background:#eee7dd}
+    .summary:nth-child(2){background:var(--terra-soft)}.summary:nth-child(3){background:var(--sage-soft)}
+    .summary span,.summary strong,.summary small{display:block}.summary span{color:var(--muted);font-size:12px}.summary strong{margin:7px 0 5px;font-size:29px}.summary small{color:#8b8176;font-size:11px}
+    .workspace{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,.8fr);gap:18px;align-items:start;min-width:0}
+    .stack{display:flex;flex-direction:column;gap:18px;min-width:0}
+    .panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:17px}.panel-head>*{min-width:0}
+    .snapshot-date{color:var(--muted);font-size:11px}
+    .account-group+.account-group{margin-top:22px}
+    .group-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .group-title strong{font-size:13px}.group-title span{color:var(--muted);font-size:12px}
+    .account-row{display:grid;grid-template-columns:42px minmax(0,1fr) auto auto;gap:12px;align-items:center;min-height:68px;border-bottom:1px solid #eee7df}
+    .account-row:last-child{border-bottom:0}
+    .logo{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;color:#fff;font-weight:800}
+    .logo.bank{background:#b7353f}.logo.pay{background:#287bb5}.logo.invest{background:#477358}.logo.debt{background:#9a674e}.logo.other{background:#7b6c89}
+    .account-main{min-width:0}.account-main strong,.account-main small{display:block}.account-main strong{font-size:13px}.account-main small{color:var(--muted);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .amount{text-align:right;font-weight:750;white-space:nowrap}.amount small{display:block;color:var(--muted);font-weight:400}
+    .icon-btn{width:34px;height:34px;padding:0;border:0;border-radius:9px;background:transparent;color:#8d8378}.icon-btn:hover{background:#f0e9df;color:var(--plum)}
+    .donut-wrap{display:grid;grid-template-columns:150px 1fr;gap:18px;align-items:center}
+    .donut{position:relative;width:150px;aspect-ratio:1;border-radius:50%;background:conic-gradient(var(--sand) 0 64%,var(--sage) 64% 84%,var(--plum) 84% 95%,var(--terra) 95%);display:grid;place-items:center}
+    .donut:after{content:"";width:92px;aspect-ratio:1;border-radius:50%;background:var(--card)}
+    .donut-label{position:absolute;z-index:1;text-align:center}.donut-label span,.donut-label strong{display:block}.donut-label span{color:var(--muted);font-size:10px}.donut-label strong{font-size:18px}
+    .legend{display:flex;flex-direction:column;gap:9px}.legend div{display:grid;grid-template-columns:9px 1fr auto;gap:8px;align-items:center;font-size:11px}.legend i{width:9px;height:9px;border-radius:50%}
+    .trend{width:100%;height:190px}.trend .grid{stroke:#e7dfd5;stroke-width:1}.trend .line{fill:none;stroke:var(--plum);stroke-width:4}.trend .area{fill:var(--plum-soft);opacity:.65}.trend text{fill:#8a8177;font-size:10px}
+    .notice{padding:15px 17px;border-radius:15px;background:#eee7dd;color:#665e55;font-size:12px}.notice strong{display:block;margin-bottom:3px;color:var(--ink)}
+    .view{display:none}.view.active{display:block}
+    .tab{height:36px;padding:0 13px;border:1px solid var(--line);border-radius:18px;background:transparent;color:var(--muted);font-size:12px}.tab.active{background:var(--ink);border-color:var(--ink);color:#fff}
+    .rank-row{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #eee7df}.rank-row:last-child{border:0}.rank{color:#9a9186;font:700 18px/1 "Songti SC",serif}.bar{height:5px;margin-top:5px;border-radius:5px;background:#eee7df;overflow:hidden}.bar i{display:block;height:100%;border-radius:inherit;background:var(--plum)}
+    .mobile-nav{display:none}
+    .modal{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:20px;background:rgba(31,26,22,.38);backdrop-filter:blur(6px)}
+    .modal[hidden]{display:none}.sheet{width:min(520px,100%);max-height:calc(100vh - 40px);overflow:auto;padding:25px;border-radius:24px;background:var(--card);box-shadow:0 28px 80px rgba(36,26,22,.24)}
+    .sheet-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px}.close{width:38px;height:38px;border:1px solid var(--line);border-radius:12px;background:#faf7f2;font-size:22px}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:7px}.field.full{grid-column:1/-1}.field span{color:#746b61;font-size:11px;font-weight:700}.field input,.field select{width:100%;height:46px;padding:0 12px;border:1px solid var(--line);border-radius:11px;background:#fbf8f3;outline:0}.field input:focus,.field select:focus{border-color:#92748a;box-shadow:0 0 0 3px rgba(77,48,69,.07)}
+    .sheet-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+    .toast{position:fixed;left:50%;bottom:28px;z-index:40;padding:11px 17px;border-radius:12px;background:#27231f;color:#fff;opacity:0;transform:translate(-50%,12px);transition:.25s;pointer-events:none}.toast.show{opacity:1;transform:translate(-50%,0)}
+    @media(max-width:1080px){.workspace{grid-template-columns:1fr}.right-stack{display:grid;grid-template-columns:1fr 1fr}.right-stack .notice{grid-column:1/-1}}
+    @media(max-width:760px){
+      :root{--sidebar:0px}html,body{overflow-x:hidden}.sidebar{display:none}.main{width:100%;max-width:100%;margin:0;padding:0 14px 92px}.topbar{position:relative;width:100%;max-width:100%;min-height:112px;padding-top:22px;align-items:center}.topbar>div:first-child{min-width:0}.topbar h1{font-size:24px;white-space:nowrap}.topbar .actions{position:absolute;display:flex;right:0;top:25px}.topbar .actions .btn:first-child{display:none}.topbar .actions .btn.primary{width:44px;min-height:40px;padding:0}.topbar .btn span{display:none}
+      .summary-grid{grid-template-columns:1fr 1fr}.summary{min-width:0;min-height:104px;padding:17px}.summary strong{font-size:20px;white-space:nowrap}.summary:last-child{grid-column:1/-1}.summary:last-child strong{font-size:23px}
+      .right-stack{display:flex}.panel{padding:18px;border-radius:19px}.donut-wrap{grid-template-columns:130px 1fr}.donut{width:130px}
+      .snapshot-date{display:none}.account-group,.account-row{width:100%;max-width:100%}.account-row{grid-template-columns:38px minmax(0,1fr) auto;gap:8px}.account-row .icon-btn{display:none}.amount{min-width:0;font-size:12px}.amount small{display:none}
+      .mobile-nav{position:fixed;display:grid;grid-template-columns:repeat(4,1fr);left:10px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:20;height:66px;padding:6px;border:1px solid rgba(85,69,55,.14);border-radius:20px;background:rgba(255,252,247,.95);box-shadow:0 14px 35px rgba(53,41,31,.16)}
+      .mobile-nav button{border:0;border-radius:14px;background:transparent;color:#847a70;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:9px}.mobile-nav button.active{background:var(--plum);color:#fff}
+    }
+    @media(max-width:460px){.donut-wrap{grid-template-columns:1fr}.donut{margin:auto}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.topbar .btn span{display:none}}
+  </style>
+</head>
+<body>
+  <svg class="sprite" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M4 6h15a2 2 0 0 1 2 2v11H4a2 2 0 0 1-2-2V6a3 3 0 0 1 3-3h12v3"/><path d="M16 11h5v4h-5a2 2 0 0 1 0-4Z"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  </svg>
+
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-mark">日</div><div><strong>日常集</strong><span>生活有迹可循</span></div></div>
+    <nav>
+      <button class="nav-item"><svg><use href="#i-home"/></svg>今日总览</button>
+      <div class="nav-label">生活模块</div>
+      <button class="nav-item"><svg><use href="#i-wallet"/></svg>记账理财</button>
+      <button class="nav-item active"><svg><use href="#i-chart"/></svg>资产总账</button>
+      <button class="nav-item"><svg><use href="#i-list"/></svg>习惯健康</button>
+      <div class="nav-label">数据</div>
+      <button class="nav-item"><svg><use href="#i-list"/></svg>时光档案</button>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div><p class="eyebrow">2026 年 10 月 8 日 · 最新快照</p><h1>个人资产总账</h1></div>
+      <div class="actions">
+        <button class="btn" id="snapshotBtn"><svg><use href="#i-refresh"/></svg><span>保存本期快照</span></button>
+        <button class="btn primary" data-open="asset"><svg><use href="#i-plus"/></svg><span>新增账户</span></button>
+      </div>
+    </header>
+
+    <section class="summary-grid">
+      <article class="summary"><span>总资产</span><strong>¥506,187.00</strong><small>较上次快照 +¥8,460</small></article>
+      <article class="summary"><span>总负债</span><strong>¥36,800.00</strong><small>信用卡与消费贷 2 项</small></article>
+      <article class="summary"><span>净资产</span><strong>¥469,387.00</strong><small>资产减去全部负债</small></article>
+    </section>
+
+    <div class="tabs" style="margin-bottom:14px">
+      <button class="tab active" data-view="ledger">账户总览</button>
+      <button class="tab" data-view="stats">统计分析</button>
+    </div>
+
+    <section class="view active" id="ledger">
+      <div class="workspace">
+        <div class="stack">
+          <article class="panel">
+            <div class="panel-head"><div><p class="eyebrow">账户清单</p><h2>钱分别放在哪里</h2></div><span class="snapshot-date">更新于 10 月 8 日</span></div>
+            <section class="account-group">
+              <div class="group-title"><strong>存款</strong><span>¥393,324.00</span></div>
+              <div class="account-row"><span class="logo bank">招</span><span class="account-main"><strong>招商银行</strong><small>工资卡 · 尾号 7168</small></span><span class="amount">¥286,240.00<small>56.5%</small></span><button class="icon-btn" data-open="asset" aria-label="编辑招商银行账户"><svg><use href="#i-edit"/></svg></button></div>
+              <div class="account-row"><span class="logo pay">支</span><span class="account-main"><strong>支付宝</strong><small>余额宝与账户余额</small></span><span class="amount">¥86,284.00<small>17.0%</small></span><button class="icon-btn" data-open="asset" aria-label="编辑支付宝账户"><svg><use href="#i-edit"/></svg></button></div>
+              <div class="account-row"><span class="logo other">其</span><span class="account-main"><strong>其他存款</strong><small>现金与备用金</small></span><span class="amount">¥20,800.00<small>4.1%</small></span><button class="icon-btn" data-open="asset" aria-label="编辑其他存款"><svg><use href="#i-edit"/></svg></button></div>
+            </section>
+            <section class="account-group">
+              <div class="group-title"><strong>投资</strong><span>¥24,427.00</span></div>
+              <div class="account-row"><span class="logo invest">基</span><span class="account-main"><strong>指数基金</strong><small>证券账户 · 当前市值</small></span><span class="amount">¥24,427.00<small>4.8%</small></span><button class="icon-btn" data-open="asset" aria-label="编辑投资账户"><svg><use href="#i-edit"/></svg></button></div>
+            </section>
+            <section class="account-group">
+              <div class="group-title"><strong>应收</strong><span>¥88,436.00</span></div>
+              <div class="account-row"><span class="logo other">收</span><span class="account-main"><strong>待收款</strong><small>借出款与未到账报销</small></span><span class="amount">¥88,436.00<small>17.5%</small></span><button class="icon-btn" data-open="asset" aria-label="编辑应收账户"><svg><use href="#i-edit"/></svg></button></div>
+            </section>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><div><p class="eyebrow">负债清单</p><h2>还欠多少钱</h2></div><button class="btn" data-open="debt"><svg><use href="#i-plus"/></svg>新增负债</button></div>
+            <div class="account-row"><span class="logo debt">卡</span><span class="account-main"><strong>信用卡</strong><small>10 月 18 日还款 · 本期账单</small></span><span class="amount">¥12,800.00</span><button class="icon-btn" data-open="debt" aria-label="编辑信用卡负债"><svg><use href="#i-edit"/></svg></button></div>
+            <div class="account-row"><span class="logo debt">贷</span><span class="account-main"><strong>消费贷</strong><small>剩余 6 期 · 每期 ¥4,000</small></span><span class="amount">¥24,000.00</span><button class="icon-btn" data-open="debt" aria-label="编辑消费贷负债"><svg><use href="#i-edit"/></svg></button></div>
+          </article>
+        </div>
+        <aside class="stack right-stack">
+          <article class="panel">
+            <div class="panel-head"><div><p class="eyebrow">资产结构</p><h2>资产配置</h2></div></div>
+            <div class="donut-wrap">
+              <div class="donut"><div class="donut-label"><span>总资产</span><strong>50.62万</strong></div></div>
+              <div class="legend">
+                <div><i style="background:var(--sand)"></i><span>存款</span><b>78%</b></div>
+                <div><i style="background:var(--sage)"></i><span>应收</span><b>17%</b></div>
+                <div><i style="background:var(--plum)"></i><span>投资</span><b>5%</b></div>
+              </div>
+            </div>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><div><p class="eyebrow">最近一年</p><h2>净资产趋势</h2></div></div>
+            <svg class="trend" viewBox="0 0 420 190" role="img" aria-label="净资产增长趋势">
+              <line class="grid" x1="28" y1="35" x2="404" y2="35"/><line class="grid" x1="28" y1="95" x2="404" y2="95"/><line class="grid" x1="28" y1="155" x2="404" y2="155"/>
+              <path class="area" d="M28 151 L70 143 L112 135 L154 120 L196 109 L238 91 L280 78 L322 63 L364 54 L404 42 L404 165 L28 165 Z"/>
+              <path class="line" d="M28 151 L70 143 L112 135 L154 120 L196 109 L238 91 L280 78 L322 63 L364 54 L404 42"/>
+              <text x="28" y="184">2025.11</text><text x="360" y="184">2026.10</text>
+            </svg>
+          </article>
+          <div class="notice"><strong>口径说明</strong>账户余额改变时更新该账户；点击“保存本期快照”后，才进入历史趋势。原始快照不随后续修改而回算。</div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="view" id="stats">
+      <div class="workspace">
+        <article class="panel">
+          <div class="panel-head"><div><p class="eyebrow">历史变化</p><h2>总资产、负债与净资产</h2></div><select class="tab" aria-label="统计时间范围"><option>近一年</option><option>近三年</option><option>全部</option></select></div>
+          <svg class="trend" viewBox="0 0 800 250" style="height:300px" role="img" aria-label="资产变化趋势">
+            <line class="grid" x1="45" y1="40" x2="770" y2="40"/><line class="grid" x1="45" y1="110" x2="770" y2="110"/><line class="grid" x1="45" y1="180" x2="770" y2="180"/>
+            <path class="area" d="M45 191 L120 180 L195 169 L270 145 L345 136 L420 116 L495 101 L570 79 L645 67 L720 51 L770 45 L770 215 L45 215 Z"/>
+            <path class="line" d="M45 191 L120 180 L195 169 L270 145 L345 136 L420 116 L495 101 L570 79 L645 67 L720 51 L770 45"/>
+            <text x="45" y="240">2025.11</text><text x="680" y="240">2026.10</text>
+          </svg>
+        </article>
+        <aside class="stack">
+          <article class="panel">
+            <div class="panel-head"><div><p class="eyebrow">资产排行</p><h2>按平台查看</h2></div></div>
+            <div class="rank-row"><span class="rank">1</span><span><strong>招商银行</strong><div class="bar"><i style="width:100%"></i></div></span><b>¥286,240</b></div>
+            <div class="rank-row"><span class="rank">2</span><span><strong>待收款</strong><div class="bar"><i style="width:31%"></i></div></span><b>¥88,436</b></div>
+            <div class="rank-row"><span class="rank">3</span><span><strong>支付宝</strong><div class="bar"><i style="width:30%"></i></div></span><b>¥86,284</b></div>
+            <div class="rank-row"><span class="rank">4</span><span><strong>指数基金</strong><div class="bar"><i style="width:9%"></i></div></span><b>¥24,427</b></div>
+          </article>
+          <div class="notice"><strong>关键指标</strong>负债率 7.3% · 流动资产占比 82.6% · 本期净资产增加 1.8%</div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <nav class="mobile-nav" aria-label="手机导航">
+    <button><svg><use href="#i-home"/></svg>今天</button>
+    <button><svg><use href="#i-wallet"/></svg>记账</button>
+    <button class="active"><svg><use href="#i-chart"/></svg>资产</button>
+    <button><svg><use href="#i-list"/></svg>档案</button>
+  </nav>
+
+  <div class="modal" id="accountModal" hidden>
+    <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="sheet-head"><div><p class="eyebrow" id="modalEyebrow">资产账户</p><h2 id="modalTitle">新增账户</h2></div><button class="close" aria-label="关闭">×</button></div>
+      <form id="accountForm">
+        <div class="form-grid">
+          <label class="field"><span>账户性质</span><select id="kind"><option value="asset">资产</option><option value="debt">负债</option></select></label>
+          <label class="field"><span>分类</span><select><option>存款</option><option>投资</option><option>应收</option><option>信用卡</option><option>贷款</option><option>其他</option></select></label>
+          <label class="field full"><span>平台或账户名称</span><input required placeholder="例如：招商银行工资卡"></label>
+          <label class="field"><span>当前余额</span><input required inputmode="decimal" type="number" min="0" step="0.01" placeholder="0.00"></label>
+          <label class="field"><span>余额日期</span><input required type="date" value="2026-10-08"></label>
+          <label class="field full"><span>备注</span><input placeholder="尾号、用途或还款日"></label>
+        </div>
+        <div class="sheet-actions"><button type="button" class="btn close-action">取消</button><button class="btn primary" type="submit">保存账户</button></div>
+      </form>
+    </section>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const tabs=[...document.querySelectorAll("[data-view]")];
+    tabs.forEach(tab=>tab.addEventListener("click",()=>{
+      tabs.forEach(item=>item.classList.toggle("active",item===tab));
+      document.querySelectorAll(".view").forEach(view=>view.classList.toggle("active",view.id===tab.dataset.view));
+    }));
+    const modal=document.getElementById("accountModal");
+    function openModal(type){
+      const debt=type==="debt";
+      document.getElementById("kind").value=debt?"debt":"asset";
+      document.getElementById("modalEyebrow").textContent=debt?"负债账户":"资产账户";
+      document.getElementById("modalTitle").textContent=debt?"新增负债":"新增账户";
+      modal.hidden=false;
+      setTimeout(()=>modal.querySelector("input").focus(),0);
+    }
+    function closeModal(){modal.hidden=true}
+    document.querySelectorAll("[data-open]").forEach(button=>button.addEventListener("click",()=>openModal(button.dataset.open)));
+    document.querySelectorAll(".close,.close-action").forEach(button=>button.addEventListener("click",closeModal));
+    modal.addEventListener("click",event=>{if(event.target===modal)closeModal()});
+    document.addEventListener("keydown",event=>{if(event.key==="Escape")closeModal()});
+    const toast=document.getElementById("toast");
+    function notify(message){toast.textContent=message;toast.classList.add("show");setTimeout(()=>toast.classList.remove("show"),2200)}
+    document.getElementById("snapshotBtn").addEventListener("click",()=>notify("已保存 2026 年 10 月 8 日资产快照"));
+    document.getElementById("accountForm").addEventListener("submit",event=>{event.preventDefault();closeModal();event.currentTarget.reset();notify("账户已保存，等待保存本期快照")});
+  </script>
+</body>
+</html>

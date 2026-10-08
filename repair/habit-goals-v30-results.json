@@ -1,0 +1,13 @@
+{
+  "target": "candidate/v30/index.html",
+  "checks": [
+    "create form supports weekly, monthly, and before-time goals",
+    "weekly check-in records one daily occurrence and shows 1 / 3 progress",
+    "monthly numeric goal aggregates the entered daily value",
+    "time selection only persists after the explicit record button",
+    "00:30 meets a 01:00 goal while 01:30 is retained as not met",
+    "habit goal groups fit desktop and mobile without page overflow",
+    "clearing removes the logical-day entry and restores the empty state"
+  ],
+  "pageErrors": []
+}

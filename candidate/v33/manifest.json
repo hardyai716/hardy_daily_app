@@ -1,0 +1,11 @@
+{
+  "status": "local-candidate-not-deployed",
+  "version": 33,
+  "change": "Stabilize the mobile cloud-sync card across all sync states",
+  "baseline_sha256": "22cfb6eb692fc2c71504f2a27a3707b9e933d252f603d0d583eaacf7d0ac40df",
+  "candidate_sha256": "2133e7ad0290e3962e17fa67059a906f80256c5b2e662af8b532f0341552e22f",
+  "bytes": 376188,
+  "two_paths_identical": true,
+  "cloud_schema_changes": false,
+  "publish_requires_explicit_instruction": true
+}

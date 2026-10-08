@@ -69,6 +69,9 @@ function env({cloud=fakeCloud(),storage={},sdk=true,bind=true,quota=false}={}){
       habitPeriodBounds:typeof habitPeriodBounds==='function'?habitPeriodBounds:null,
       habitProgress:typeof habitProgress==='function'?habitProgress:null,
       habitStreak:typeof habitStreak==='function'?habitStreak:null,
+      habitRuleAt:typeof habitRuleAt==='function'?habitRuleAt:null,
+      habitPendingRule:typeof habitPendingRule==='function'?habitPendingRule:null,
+      nextHabitRuleDate:typeof nextHabitRuleDate==='function'?nextHabitRuleDate:null,
       logicalHabitDate:typeof logicalHabitDate==='function'?logicalHabitDate:null,
       timeToHabitMinutes:typeof timeToHabitMinutes==='function'?timeToHabitMinutes:null,
       habitMinutesToTime:typeof habitMinutesToTime==='function'?habitMinutesToTime:null,
@@ -303,15 +306,30 @@ async function main(){
       assert.equal(e.api.habitProgress(habit,'2026-10-07').done,done,value);
     }
   });
+  await test('habit goal versions preserve historical rules and activate at period boundaries',async()=>{
+    const e=env();assert.ok(e.api.habitRuleAt);
+    const weekly={id:'versioned-week',name:'游泳',type:'check',period:'week',rule:'atLeast',target:3,targetTime:'',dayBoundary:4,unit:'次',tone:'sage',
+      goalVersions:[{effectiveFrom:'0001-01-01',target:3,targetTime:'01:00'},{effectiveFrom:'2026-10-12',target:4,targetTime:'01:00'}],
+      entries:{'2026-10-05':1,'2026-10-06':1,'2026-10-07':1,'2026-10-12':1,'2026-10-13':1,'2026-10-14':1}};
+    assert.equal(e.api.habitRuleAt(weekly,'2026-10-08').target,3);
+    assert.equal(e.api.habitProgress(weekly,'2026-10-08').done,true);
+    assert.equal(e.api.habitRuleAt(weekly,'2026-10-12').target,4);
+    assert.equal(e.api.habitProgress(weekly,'2026-10-14').done,false);
+    assert.equal(e.api.habitPendingRule(weekly,'2026-10-08').effectiveFrom,'2026-10-12');
+    const legacy=clone(e.api.state);delete legacy.habits[0].goalVersions;
+    const normalized=e.api.normalizeState(legacy).habits[0];
+    assert.equal(normalized.goalVersions[0].effectiveFrom,'0001-01-01');
+  });
   await test('period and time metadata round-trip without changing check-in stable IDs',async()=>{
     const e=env();await seed(e);
     const weekly={id:'habit-swim',key:'custom-swim',name:'游泳',type:'check',period:'week',rule:'atLeast',target:3,targetTime:'',dayBoundary:4,unit:'次',tone:'sage',entries:{'2026-10-06':1},sample:false};
-    const timed={id:'habit-sleep-time',key:'custom-sleep-time',name:'一点前睡觉',type:'time',period:'day',rule:'beforeTime',target:1,targetTime:'01:00',dayBoundary:4,unit:'时间',tone:'plum',entries:{'2026-10-06':1470},sample:false};
+    const timed={id:'habit-sleep-time',key:'custom-sleep-time',name:'一点前睡觉',type:'time',period:'day',rule:'beforeTime',target:1,targetTime:'01:00',goalVersions:[{effectiveFrom:'0001-01-01',target:1,targetTime:'01:00'},{effectiveFrom:'2026-10-07',target:1,targetTime:'00:30'}],dayBoundary:4,unit:'时间',tone:'plum',entries:{'2026-10-06':1470},sample:false};
     e.api.state.habits.push(weekly,timed);e.api.saveState();await seed(e);
     assert.equal(e.cloud.tables[e.api.SYNC_TABLES.checkin].some(row=>row['稳定ID']==='habit-swim/2026-10-06'),true);
     const second=env({cloud:e.cloud});await seed(second);
     assert.equal(second.api.state.habits.find(h=>h.id==='habit-swim').period,'week');
     assert.equal(second.api.state.habits.find(h=>h.id==='habit-sleep-time').targetTime,'01:00');
+    assert.equal(second.api.state.habits.find(h=>h.id==='habit-sleep-time').goalVersions[1].targetTime,'00:30');
     assert.equal(second.api.state.habits.find(h=>h.id==='habit-sleep-time').entries['2026-10-06'],1470);
   });
   fs.writeFileSync(resultPath,JSON.stringify({method:'Full page JS in isolated VM; synthetic SDK only; no production requests',passed:results.length,results},null,2)+'\n');

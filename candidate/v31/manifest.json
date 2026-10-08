@@ -1,0 +1,11 @@
+{
+  "status": "local-candidate-not-deployed",
+  "version": 31,
+  "change": "Add history-safe habit editing and scheduled goal changes",
+  "baseline_sha256": "9d6646aa2dd8cb8dec60dbba6ccda05cb32fff3ab02da172996217cf67ec5ce9",
+  "candidate_sha256": "658116186d9aa30471efb50ea7ae8adfb3cc428b1b8b05b34cf4698d9f7c92fc",
+  "bytes": 336156,
+  "two_paths_identical": true,
+  "cloud_schema_changes": false,
+  "publish_requires_explicit_instruction": true
+}

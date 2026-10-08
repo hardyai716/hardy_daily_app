@@ -1,0 +1,11 @@
+{
+  "status": "local-candidate-not-deployed",
+  "version": 32,
+  "change": "Add the tools hub and personal asset ledger with immutable balance snapshots",
+  "baseline_sha256": "658116186d9aa30471efb50ea7ae8adfb3cc428b1b8b05b34cf4698d9f7c92fc",
+  "candidate_sha256": "22cfb6eb692fc2c71504f2a27a3707b9e933d252f603d0d583eaacf7d0ac40df",
+  "bytes": 375642,
+  "two_paths_identical": true,
+  "cloud_schema_changes": true,
+  "publish_requires_explicit_instruction": true
+}

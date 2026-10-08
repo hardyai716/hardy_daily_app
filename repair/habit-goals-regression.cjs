@@ -4,8 +4,8 @@ const http = require('node:http');
 const path = require('node:path');
 const assert = require('node:assert/strict');
 
-const target = process.argv[2] || path.join(__dirname, '../candidate/v29/index.html');
-const resultPath = process.argv[3] || path.join(__dirname, 'habit-goals-v29-results.json');
+const target = process.argv[2] || path.join(__dirname, '../candidate/v30/index.html');
+const resultPath = process.argv[3] || path.join(__dirname, 'habit-goals-v30-results.json');
 const html = fs.readFileSync(target);
 const results = { target, checks: [], pageErrors: [] };
 let browser;
@@ -77,6 +77,10 @@ async function createHabit(page, values) {
   assert.match(await weekly.textContent(), /本周目标 3 次/);
   assert.match(await monthly.textContent(), /本月目标 100 页/);
   assert.match(await timed.textContent(), /今天 01:00 前/);
+  assert.match(await timed.textContent(), /实际时间/);
+  assert.match(await timed.textContent(), /未记录/);
+  assert.equal(await timed.locator('[data-action=habit-time-input]').inputValue(), '');
+  assert.equal(await timed.locator('[data-action=habit-time-save]').isDisabled(), true);
   results.checks.push('create form supports weekly, monthly, and before-time goals');
 
   await weekly.locator('[data-action=habit-toggle]').click();
@@ -89,34 +93,48 @@ async function createHabit(page, values) {
   assert.match(await monthly.textContent(), /30 \/ 100 页/);
   results.checks.push('monthly numeric goal aggregates the entered daily value');
 
-  await timed.locator('[data-action=habit-time]').fill('00:30');
-  await timed.locator('[data-action=habit-time]').press('Tab');
-  assert.match(await timed.textContent(), /已达标/);
+  await timed.locator('[data-action=habit-time-input]').fill('00:30');
+  assert.equal(await timed.locator('[data-action=habit-time-save]').isDisabled(), false);
   let stored = await page.evaluate(() => JSON.parse(localStorage.getItem('richangji-state-v1')));
   let timeHabit = stored.habits.find(habit => habit.name === '一点前睡觉');
+  assert.deepEqual(timeHabit.entries, {});
+  await timed.locator('[data-action=habit-time-save]').click();
+  assert.match(await timed.textContent(), /已记录 · 达标/);
+  stored = await page.evaluate(() => JSON.parse(localStorage.getItem('richangji-state-v1')));
+  timeHabit = stored.habits.find(habit => habit.name === '一点前睡觉');
   assert.equal(timeHabit.period, 'day');
   assert.equal(timeHabit.rule, 'beforeTime');
   assert.equal(timeHabit.targetTime, '01:00');
   assert.equal(Object.values(timeHabit.entries).at(-1), 1470);
 
-  await timed.locator('[data-action=habit-time]').fill('01:30');
-  await timed.locator('[data-action=habit-time]').press('Tab');
-  assert.match(await timed.textContent(), /进行中/);
+  await timed.locator('[data-action=habit-time-input]').fill('01:30');
+  await timed.locator('[data-action=habit-time-save]').click();
+  assert.match(await timed.textContent(), /已记录 · 未达标/);
   stored = await page.evaluate(() => JSON.parse(localStorage.getItem('richangji-state-v1')));
   timeHabit = stored.habits.find(habit => habit.name === '一点前睡觉');
   assert.equal(Object.values(timeHabit.entries).at(-1), 1530);
-  results.checks.push('00:30 meets a 01:00 goal while 01:30 does not; values stay numeric');
+  results.checks.push('time selection only persists after the explicit record button');
+  results.checks.push('00:30 meets a 01:00 goal while 01:30 is retained as not met');
 
   await page.waitForTimeout(1100);
-  await page.screenshot({ path: path.join(__dirname, 'habit-goals-v29-desktop.png'), fullPage: true });
+  await timed.screenshot({ path: path.join(__dirname, 'habit-goals-v30-desktop.png') });
   await page.setViewportSize({ width: 390, height: 844 });
+  await timed.scrollIntoViewIfNeeded();
   const geometry = await page.evaluate(() => ({
     viewport: innerWidth,
     scrollWidth: document.documentElement.scrollWidth,
   }));
   assert.ok(geometry.scrollWidth <= geometry.viewport + 1, JSON.stringify(geometry));
-  await page.screenshot({ path: path.join(__dirname, 'habit-goals-v29-mobile.png') });
+  await timed.screenshot({ path: path.join(__dirname, 'habit-goals-v30-mobile.png') });
   results.checks.push('habit goal groups fit desktop and mobile without page overflow');
+
+  await timed.locator('[data-action=habit-time-clear]').click();
+  assert.match(await timed.textContent(), /未记录/);
+  assert.equal(await timed.locator('[data-action=habit-time-input]').inputValue(), '');
+  stored = await page.evaluate(() => JSON.parse(localStorage.getItem('richangji-state-v1')));
+  timeHabit = stored.habits.find(habit => habit.name === '一点前睡觉');
+  assert.deepEqual(timeHabit.entries, {});
+  results.checks.push('clearing removes the logical-day entry and restores the empty state');
 
   assert.deepEqual(results.pageErrors, []);
   fs.writeFileSync(resultPath, JSON.stringify(results, null, 2) + '\n');
